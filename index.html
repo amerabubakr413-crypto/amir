@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🎬 فلیم - سەیری فیلم لەگەڵ هاوڕێکان</title>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     :root {
       --primary: #6366f1;
@@ -120,6 +120,8 @@
       margin: 2rem 0;
       color: var(--muted);
       font-size: 0.875rem;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .feature-item { display: flex; align-items: center; gap: 0.5rem; }
@@ -247,6 +249,8 @@
       background: rgba(0,0,0,0.4);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .room-info { display: flex; align-items: center; gap: 1.5rem; }
@@ -260,6 +264,12 @@
       font-weight: 700;
       font-size: 0.875rem;
       letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .room-badge:hover {
+      background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.2));
+      transform: scale(1.05);
     }
 
     .main-content {
@@ -274,6 +284,7 @@
       flex-direction: column;
       padding: 1.5rem;
       gap: 1rem;
+      min-width: 0;
     }
 
     .video-container {
@@ -512,6 +523,7 @@
       backdrop-filter: blur(20px);
       display: flex;
       flex-direction: column;
+      flex-shrink: 0;
     }
 
     .tabs { display: flex; border-bottom: 1px solid var(--border); }
@@ -691,6 +703,8 @@
       background: rgba(0,0,0,0.4);
       backdrop-filter: blur(20px);
       border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .media-controls { display: flex; align-items: center; gap: 1.25rem; }
@@ -742,6 +756,8 @@
       z-index: 1000;
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       font-weight: 500;
+      max-width: 90vw;
+      text-align: center;
     }
 
     .toast.show { transform: translateX(-50%) translateY(0); }
@@ -816,6 +832,7 @@
       font-size: 0.8rem;
       font-weight: 600;
       transition: all 0.3s;
+      direction: ltr;
     }
     .connection-status.online {
       background: rgba(16,185,129,0.15);
@@ -831,6 +848,24 @@
       background: rgba(245,158,11,0.15);
       color: var(--warning);
       border: 1px solid rgba(245,158,11,0.3);
+    }
+
+    .share-box {
+      background: rgba(99,102,241,0.08);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 16px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+    .share-box .share-code {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: 4px;
+      margin: 0.5rem 0;
+      cursor: pointer;
+      user-select: all;
     }
 
     ::-webkit-scrollbar { width: 6px; }
@@ -864,6 +899,8 @@
       .room-form { padding: 1.5rem; }
       .url-input-group { flex-direction: column; }
       .url-input-group .btn { width: 100%; }
+      .top-bar { padding: 0.75rem 1rem; }
+      .video-section { padding: 0.75rem; }
     }
   </style>
 <base target="_blank">
@@ -886,6 +923,7 @@
       <div class="feature-item"><span>🎤</span> قسەکردن بە دەنگ</div>
       <div class="feature-item"><span>💬</span> چاتی نوسین</div>
       <div class="feature-item"><span>👥</span> تا ٥ کەس</div>
+      <div class="feature-item"><span>⚡</span> بێ سێرڤەر</div>
     </div>
 
     <div class="room-form">
@@ -908,10 +946,19 @@
       <button class="btn btn-secondary" onclick="joinRoom()">
         <span>🚪</span> بەشداربوون لە ڕوم
       </button>
+
+      <div class="share-box" id="shareBox" style="display: none;">
+        <div style="color: var(--muted); font-size: 0.875rem;">کۆدی ڕومەکەت:</div>
+        <div class="share-code" id="shareCode" onclick="copyCode()">----</div>
+        <div style="color: var(--muted); font-size: 0.8rem;">بینەران: <span id="viewerCount">0</span>/٥</div>
+        <button class="btn btn-secondary" onclick="copyLink()" style="margin-top: 0.75rem; font-size: 0.875rem;">
+          📋 کۆپی کردنی لینک
+        </button>
+      </div>
     </div>
 
     <div style="margin-top: 2rem; text-align: center; color: var(--muted); font-size: 0.875rem;">
-      فایل، لینک، یان هەر وێبسایتێک بەکاربهێنە
+      فایلەکە دابەزێنە و بیکەرەوە، هاوڕێکانت بە کۆدی ڕوم بانگهێشت بکە
     </div>
   </div>
 
@@ -919,10 +966,11 @@
     <div class="top-bar">
       <div class="room-info">
         <div style="font-weight: 800; font-size: 1.5rem; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🎬 فلیم</div>
-        <div class="room-badge" id="roomBadge">ڕوم: -</div>
+        <div class="room-badge" id="roomBadge" onclick="copyLink()" title="کۆپی کردنی لینک">ڕوم: -</div>
         <div style="color: var(--muted); font-size: 0.875rem; font-weight: 500;">
           <span id="participantCount">١</span>/٥ بەشداربوو
         </div>
+        <div class="connection-status online" id="roomConnStatus" style="position: static; font-size: 0.75rem; padding: 0.25rem 0.75rem;">🟢 پەیوەندیدار</div>
       </div>
       <button class="btn btn-secondary" onclick="leaveRoom()" style="width: auto; padding: 0.75rem 1.5rem;">
         🚪 چوونە دەرەوە
@@ -1068,7 +1116,7 @@
 
       <div class="invite-section">
         <span class="invite-text">هاوڕێکانت بانگهێشت بکە:</span>
-        <button class="btn btn-secondary" onclick="copyRoomLink()" style="width: auto; padding: 0.75rem 1.5rem; font-size: 0.875rem;">
+        <button class="btn btn-secondary" onclick="copyLink()" style="width: auto; padding: 0.75rem 1.5rem; font-size: 0.875rem;">
           📋 کۆپی کردنی لینک
         </button>
       </div>
@@ -1077,212 +1125,492 @@
 
 <script>
   // ==================== Configuration ====================
-  const SERVER_URL = window.location.origin;
-  const socket = io(SERVER_URL, { 
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 5
-  });
+  const PEER_CONFIG = {
+    host: '0.peerjs.com',
+    port: 443,
+    secure: true,
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+      ]
+    },
+    debug: 0
+  };
 
   // ==================== State ====================
+  let peer = null;
   let currentUser = '';
   let currentRoom = '';
   let isHost = false;
+  let myPeerId = '';
+  let hostPeerId = '';
+
+  // Connections
+  let connections = {}; // peerId -> DataConnection
+  let knownPeers = new Set(); // all peer IDs in room
+  let remoteAudioElements = {}; // peerId -> <audio>
+  let activeCalls = {}; // peerId -> MediaConnection
+
+  // Media
   let micStream = null;
   let audioContext = null;
   let analyser = null;
   let isMicOn = false;
-  let peers = {}; // userId -> RTCPeerConnection
-  let remoteAudioElements = {};
-  let participants = [];
+
+  // Video
   let currentVideoType = 'none';
   let youtubePlayer = null;
   let currentWebUrl = '';
-  let isSyncing = false; // Prevent emit loops
-  let connStatusEl = document.getElementById('connStatus');
+  let isSyncing = false;
+
+  // Participants
+  let participants = [];
 
   // DOM refs
   const videoElement = document.getElementById('videoPlayer');
   const iframeView = document.getElementById('iframeView');
   const webView = document.getElementById('webView');
+  const connStatusEl = document.getElementById('connStatus');
+  const roomConnStatus = document.getElementById('roomConnStatus');
 
-  // ==================== Socket Events ====================
-  socket.on('connect', () => {
-    connStatusEl.textContent = '🟢 بەستراوە';
-    connStatusEl.className = 'connection-status online';
-    setTimeout(() => connStatusEl.style.opacity = '0', 2000);
-  });
+  // ==================== Utility ====================
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
 
-  socket.on('disconnect', () => {
+  function setConnStatus(status, text) {
+    connStatusEl.className = 'connection-status ' + status;
+    connStatusEl.textContent = text;
     connStatusEl.style.opacity = '1';
-    connStatusEl.textContent = '🔴 پچڕاو';
-    connStatusEl.className = 'connection-status offline';
-  });
+    if (status === 'online') setTimeout(() => connStatusEl.style.opacity = '0', 2000);
 
-  socket.on('connect_error', () => {
-    connStatusEl.style.opacity = '1';
-    connStatusEl.textContent = '🟡 هەوڵدانەوە...';
-    connStatusEl.className = 'connection-status connecting';
-  });
-
-  // User joined notification
-  socket.on('user-joined', ({ userId, name, isHost: hostFlag, users }) => {
-    participants = users.map(u => ({
-      name: u.name,
-      isSelf: u.id === socket.id,
-      isHost: u.isHost,
-      speaking: false,
-      muted: true,
-      id: u.id
-    }));
-    renderParticipants();
-
-    if (userId !== socket.id) {
-      showToast(name + ' بەشداری کرد!');
-      if (isMicOn) createPeerConnection(userId, true);
+    if (roomConnStatus) {
+      roomConnStatus.className = 'connection-status ' + status;
+      roomConnStatus.textContent = text;
     }
-  });
+  }
 
-  // User left
-  socket.on('user-left', ({ userId, userName, users }) => {
-    showToast(userName + ' ڕومەکەی جێهێشت!');
+  function generateRoomCode() {
+    return Math.random().toString(36).substring(2, 6).toUpperCase() + 
+           Math.random().toString(36).substring(2, 4).toUpperCase();
+  }
 
-    if (peers[userId]) {
-      peers[userId].close();
-      delete peers[userId];
-    }
-    if (remoteAudioElements[userId]) {
-      remoteAudioElements[userId].remove();
-      delete remoteAudioElements[userId];
-    }
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
 
-    participants = users.map(u => ({
-      name: u.name,
-      isSelf: u.id === socket.id,
-      isHost: u.isHost,
-      speaking: false,
-      muted: true,
-      id: u.id
-    }));
-    renderParticipants();
-  });
-
-  // Chat
-  socket.on('chat-message', (message) => {
-    addMessage(message.user, message.text, message.user === currentUser, message.time);
-  });
-
-  // Video sync from others
-  socket.on('video-action', ({ action, data, from }) => {
-    if (from === currentUser) return;
-    isSyncing = true;
-    handleVideoAction(action, data);
-    setTimeout(() => isSyncing = false, 500);
-  });
-
-  // Mic status
-  socket.on('mic-status', ({ userId, isOn }) => {
-    const p = participants.find(x => x.id === userId);
-    if (p) { p.muted = !isOn; renderParticipants(); }
-  });
-
-  socket.on('speaking-status', ({ userId, isSpeaking }) => {
-    const p = participants.find(x => x.id === userId);
-    if (p) { p.speaking = isSpeaking; renderParticipants(); }
-  });
-
-  // WebRTC Signaling
-  socket.on('webrtc-offer', async ({ fromId, fromName, offer }) => {
-    const pc = createPeerConnection(fromId, false);
-    await pc.setRemoteDescription(offer);
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socket.emit('webrtc-answer', { targetId: fromId, answer: pc.localDescription });
-  });
-
-  socket.on('webrtc-answer', async ({ fromId, answer }) => {
-    if (peers[fromId]) await peers[fromId].setRemoteDescription(answer);
-  });
-
-  socket.on('webrtc-ice-candidate', async ({ fromId, candidate }) => {
-    if (peers[fromId]) await peers[fromId].addIceCandidate(new RTCIceCandidate(candidate));
-  });
-
-  // ==================== Room Functions ====================
+  // ==================== Room Management ====================
   function createRoom() {
     const username = document.getElementById('username').value.trim();
     if (!username) { showToast('تکایە ناوێک بنووسە!'); return; }
 
     currentUser = username;
-    currentRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
+    currentRoom = generateRoomCode();
+    isHost = true;
+    myPeerId = 'film-' + currentRoom + '-host';
+    hostPeerId = myPeerId;
 
-    socket.emit('join-room', { roomId: currentRoom, username }, (response) => {
-      if (response?.success) {
-        isHost = response.isHost;
-        enterRoom(response);
-      } else {
-        showToast(response?.error || 'نەتوانرا ڕوم دروست بکرێت');
-      }
-    });
+    setConnStatus('connecting', '🟡 دروستکردنی ڕوم...');
+
+    peer = new Peer(myPeerId, PEER_CONFIG);
+    setupPeerEvents();
   }
 
   function joinRoom() {
     const username = document.getElementById('username').value.trim();
-    const roomId = document.getElementById('roomId').value.trim();
+    const roomId = document.getElementById('roomId').value.trim().toUpperCase();
 
     if (!username || !roomId) { showToast('تکایە ناو و کۆدی ڕوم بنووسە!'); return; }
+    if (roomId.length < 4) { showToast('کۆدی ڕوم کەمترین ٤ پیت!'); return; }
 
     currentUser = username;
-    currentRoom = roomId.toUpperCase();
+    currentRoom = roomId;
+    isHost = false;
+    hostPeerId = 'film-' + currentRoom + '-host';
+    myPeerId = 'film-' + currentRoom + '-' + Math.random().toString(36).substring(2, 7);
 
-    socket.emit('join-room', { roomId: currentRoom, username }, (response) => {
-      if (response?.success) {
-        isHost = response.isHost;
-        enterRoom(response);
+    setConnStatus('connecting', '🟡 بەستنەوە بە ڕوم...');
+
+    peer = new Peer(myPeerId, PEER_CONFIG);
+    setupPeerEvents();
+  }
+
+  function setupPeerEvents() {
+    peer.on('open', (id) => {
+      console.log('[Peer] Opened:', id);
+      setConnStatus('online', '🟢 بەستراوە');
+
+      if (isHost) {
+        enterRoom();
+        showShareBox();
       } else {
-        showToast(response?.error || 'نەتوانرا بچیتە ناو ڕومەکە');
+        connectToHost();
       }
+    });
+
+    peer.on('connection', (conn) => {
+      // Host receives guest connection, or guest receives direct connection from another guest
+      conn.on('open', () => {
+        handleConnectionOpen(conn);
+      });
+      conn.on('data', (data) => handleData(data, conn));
+      conn.on('close', () => handleDisconnect(conn.peer));
+      conn.on('error', (err) => console.log('[Conn Error]', err));
+    });
+
+    peer.on('call', (call) => {
+      console.log('[Call] Incoming from', call.peer);
+      // Always answer - if mic is on, send stream; if off, just receive
+      call.answer(micStream);
+      setupCallStream(call);
+    });
+
+    peer.on('error', (err) => {
+      console.error('[Peer Error]', err);
+      if (err.type === 'unavailable-id') {
+        setConnStatus('offline', '🔴 ناوەکە بەکارهاتووە');
+        showToast('ناوەکە بەکارهاتووە. تکایە دووبارە هەوڵبدە.');
+      } else if (err.type === 'peer-unavailable') {
+        setConnStatus('offline', '🔴 ڕومەکە بوونی نییە');
+        showToast('ڕومەکە بوونی نییە یان هۆستەکە دەرچووە.');
+      } else if (err.type === 'network') {
+        setConnStatus('offline', '🔴 کێشەی ئینتەرنێت');
+        showToast('کێشەی ئینتەرنێت. دووبارە هەوڵبدە.');
+      } else {
+        setConnStatus('offline', '🔴 هەڵە: ' + err.type);
+      }
+    });
+
+    peer.on('disconnected', () => {
+      setConnStatus('offline', '🔴 پەیوەندی پچڕا');
+      peer.reconnect();
     });
   }
 
-  function enterRoom(serverData) {
+  function connectToHost() {
+    console.log('[Guest] Connecting to host:', hostPeerId);
+    const conn = peer.connect(hostPeerId, { reliable: true });
+
+    conn.on('open', () => {
+      console.log('[Guest] Connected to host');
+      connections[hostPeerId] = conn;
+      knownPeers.add(hostPeerId);
+
+      enterRoom();
+
+      // Send join info
+      conn.send({ type: 'join', user: currentUser, peerId: myPeerId });
+
+      // Request current state
+      conn.send({ type: 'request-state' });
+    });
+
+    conn.on('data', (data) => handleData(data, conn));
+    conn.on('close', () => {
+      showToast('هۆست ڕومەکەی جێهێشت!');
+      handleDisconnect(hostPeerId);
+    });
+    conn.on('error', (err) => console.log('[Host Conn Error]', err));
+
+    // Timeout if can't connect
+    setTimeout(() => {
+      if (!conn.open) {
+        showToast('نەتوانرا بگاتە ڕومەکە. دڵنیابەرەوە لە کۆدەکە.');
+        setConnStatus('offline', '🔴 ڕوم نەدۆزرایەوە');
+      }
+    }, 8000);
+  }
+
+  function handleConnectionOpen(conn) {
+    const peerId = conn.peer;
+    console.log('[Host] Guest connected:', peerId);
+
+    if (connections[peerId]) {
+      connections[peerId].close();
+    }
+    connections[peerId] = conn;
+    knownPeers.add(peerId);
+
+    // If guest, and this is a direct connection from another guest, add them
+    if (!isHost) {
+      knownPeers.add(peerId);
+    }
+  }
+
+  function handleData(data, conn) {
+    if (!data || !data.type) return;
+
+    switch (data.type) {
+      case 'join':
+        if (isHost) {
+          // New guest joined - add to participants
+          addParticipant(data.user, data.peerId, false);
+
+          // Tell everyone about this new user
+          broadcast({ type: 'user-joined', user: data.user, peerId: data.peerId });
+
+          // Send current room state to the new guest
+          conn.send({
+            type: 'room-state',
+            users: participants.map(p => ({ name: p.name, peerId: p.id, isHost: p.isHost })),
+            video: getCurrentVideoState(),
+            messages: getChatHistory()
+          });
+
+          showToast(data.user + ' بەشداری کرد!');
+        }
+        break;
+
+      case 'user-joined':
+        if (!isHost && data.peerId !== myPeerId) {
+          addParticipant(data.user, data.peerId, false);
+          // Connect directly for voice mesh
+          if (micStream) callPeer(data.peerId);
+        }
+        break;
+
+      case 'room-state':
+        if (!isHost) {
+          // Sync participants
+          participants = [];
+          if (data.users) {
+            data.users.forEach(u => {
+              addParticipant(u.name, u.peerId, u.isHost);
+            });
+          }
+          // Sync video
+          if (data.video && data.video.videoType !== 'none') {
+            isSyncing = true;
+            restoreVideoState(data.video);
+            setTimeout(() => isSyncing = false, 500);
+          }
+          // Sync chat
+          if (data.messages) {
+            data.messages.forEach(m => addMessage(m.user, m.text, m.user === currentUser, m.time));
+          }
+        }
+        break;
+
+      case 'chat':
+        addMessage(data.user, data.text, false, data.time);
+        if (data.user !== currentUser) showToast('نامەی نوێ لە ' + data.user);
+        break;
+
+      case 'video':
+        if (data.from === myPeerId) return;
+        isSyncing = true;
+        handleVideoAction(data.action, data.data);
+        setTimeout(() => isSyncing = false, 500);
+        break;
+
+      case 'mic-status':
+        updateParticipantMic(data.peerId, data.isOn);
+        break;
+
+      case 'speaking-status':
+        updateParticipantSpeaking(data.peerId, data.isSpeaking);
+        break;
+
+      case 'request-state':
+        if (isHost && conn) {
+          conn.send({
+            type: 'room-state',
+            users: participants.map(p => ({ name: p.name, peerId: p.id, isHost: p.isHost })),
+            video: getCurrentVideoState(),
+            messages: getChatHistory()
+          });
+        }
+        break;
+
+      case 'peer-list':
+        if (!isHost && data.peers) {
+          data.peers.forEach(pid => {
+            if (pid !== myPeerId && !connections[pid]) {
+              knownPeers.add(pid);
+              // Connect directly for better mesh
+              const directConn = peer.connect(pid, { reliable: true });
+              directConn.on('open', () => { connections[pid] = directConn; });
+              directConn.on('data', (d) => handleData(d, directConn));
+              // Call for voice
+              if (micStream) callPeer(pid);
+            }
+          });
+        }
+        break;
+    }
+  }
+
+  function handleDisconnect(peerId) {
+    console.log('[Disconnect]', peerId);
+
+    const p = participants.find(x => x.id === peerId);
+    if (p) {
+      showToast(p.name + ' ڕومەکەی جێهێشت!');
+      removeParticipant(peerId);
+    }
+
+    if (connections[peerId]) {
+      connections[peerId].close();
+      delete connections[peerId];
+    }
+    if (activeCalls[peerId]) {
+      activeCalls[peerId].close();
+      delete activeCalls[peerId];
+    }
+    if (remoteAudioElements[peerId]) {
+      remoteAudioElements[peerId].remove();
+      delete remoteAudioElements[peerId];
+    }
+    knownPeers.delete(peerId);
+
+    // If host disconnected and I'm guest, room is dead
+    if (peerId === hostPeerId && !isHost) {
+      setConnStatus('offline', '🔴 هۆست دەرچوو');
+      showToast('هۆستەکە دەرچوو. ڕومەکە ناچالاک بوو.');
+    }
+  }
+
+  function broadcast(data) {
+    data.from = myPeerId;
+    Object.values(connections).forEach(conn => {
+      if (conn.open) conn.send(data);
+    });
+  }
+
+  // ==================== Room UI ====================
+  function enterRoom() {
     document.getElementById('landing').style.display = 'none';
     document.getElementById('room').style.display = 'flex';
     document.getElementById('roomBadge').textContent = 'ڕوم: ' + currentRoom;
 
-    participants = serverData.users.map(u => ({
-      name: u.name,
-      isSelf: u.id === socket.id,
-      isHost: u.isHost,
-      speaking: false,
-      muted: true,
-      id: u.id
-    }));
-    renderParticipants();
-
-    // Load chat history
-    if (serverData.messages) {
-      serverData.messages.forEach(msg => addMessage(msg.user, msg.text, msg.user === currentUser, msg.time));
-    }
-
-    // Load current video if any
-    if (serverData.currentVideo) {
-      isSyncing = true;
-      handleRemoteVideo(serverData.currentVideo);
-      setTimeout(() => isSyncing = false, 500);
-    }
+    // Add self
+    addParticipant(currentUser, myPeerId, true);
 
     window.history.pushState({}, '', '?room=' + currentRoom);
     showToast('بەخێربێی بۆ ڕومی ' + currentRoom + '!');
   }
 
+  function showShareBox() {
+    const box = document.getElementById('shareBox');
+    const code = document.getElementById('shareCode');
+    box.style.display = 'block';
+    code.textContent = currentRoom;
+    updateViewerCount();
+  }
+
+  function updateViewerCount() {
+    const count = participants.length;
+    document.getElementById('viewerCount').textContent = count;
+    document.getElementById('participantCount').textContent = count;
+  }
+
   function leaveRoom() {
-    socket.disconnect();
+    if (peer) {
+      broadcast({ type: 'leave', peerId: myPeerId, user: currentUser });
+      Object.values(connections).forEach(c => c.close());
+      Object.values(activeCalls).forEach(c => c.close());
+      peer.destroy();
+    }
     location.href = location.pathname;
   }
 
-  // ==================== WebRTC Voice Chat ====================
-  async function startVoice() {
+  function copyCode() {
+    navigator.clipboard.writeText(currentRoom).then(() => {
+      showToast('کۆدی ڕوم کۆپی کرا: ' + currentRoom);
+    });
+  }
+
+  function copyLink() {
+    const url = window.location.origin + window.location.pathname + '?room=' + currentRoom;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('لینک کۆپی کرا! ببەستە بۆ هاوڕێکانت');
+    });
+  }
+
+  // ==================== Participants ====================
+  function addParticipant(name, peerId, isSelf) {
+    if (participants.length >= 5 && !isSelf) { showToast('ئەم ڕومە پڕە!'); return false; }
+    if (!participants.find(p => p.id === peerId)) {
+      participants.push({ 
+        name, id: peerId, isSelf, 
+        isHost: isSelf && isHost, 
+        speaking: false, muted: true 
+      });
+      renderParticipants();
+      updateViewerCount();
+      return true;
+    }
+    return false;
+  }
+
+  function removeParticipant(peerId) {
+    participants = participants.filter(p => p.id !== peerId);
+    renderParticipants();
+    updateViewerCount();
+  }
+
+  function updateParticipantMic(peerId, isOn) {
+    const p = participants.find(x => x.id === peerId);
+    if (p) { p.muted = !isOn; renderParticipants(); }
+  }
+
+  function updateParticipantSpeaking(peerId, isSpeaking) {
+    const p = participants.find(x => x.id === peerId);
+    if (p) { p.speaking = isSpeaking; renderParticipants(); }
+  }
+
+  function renderParticipants() {
+    const list = document.getElementById('participantsList');
+    list.innerHTML = '';
+
+    participants.forEach((p) => {
+      const div = document.createElement('div');
+      div.className = 'participant ' + (p.speaking ? 'speaking' : '');
+      const initials = p.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+      div.innerHTML = `
+        <div class="avatar ${p.speaking ? 'speaking' : ''}">
+          ${initials}
+          ${p.isHost ? '<div class="avatar-host">👑</div>' : ''}
+        </div>
+        <div class="participant-info">
+          <div class="participant-name">${p.name} ${p.isSelf ? '(تۆ)' : ''}</div>
+          <div class="participant-status">
+            <span class="status-dot ${p.muted ? 'muted' : ''}"></span>
+            ${p.muted ? 'میکرۆفۆن داخراوە' : (p.speaking ? 'قسە دەکات...' : 'بەردەستە')}
+          </div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+
+    for (let i = participants.length; i < 5; i++) {
+      const div = document.createElement('div');
+      div.className = 'participant slot-empty';
+      div.innerHTML = `
+        <div class="avatar">؟</div>
+        <div class="participant-info">
+          <div class="participant-name" style="color: var(--muted);">بەشداربوونی ${i + 1}</div>
+          <div class="participant-status">بەردەست نییە</div>
+        </div>
+      `;
+      list.appendChild(div);
+    }
+  }
+
+  // ==================== Voice Chat (WebRTC via PeerJS) ====================
+  async function toggleMic() {
+    if (!isMicOn) await startMic();
+    else stopMic();
+  }
+
+  async function startMic() {
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -1295,21 +1623,21 @@
       isMicOn = true;
       updateMicUI(true);
 
-      // Connect to existing participants
-      participants.forEach(p => {
-        if (!p.isSelf && p.id) createPeerConnection(p.id, true);
+      // Call all known peers for voice mesh
+      knownPeers.forEach(pid => {
+        if (pid !== myPeerId) callPeer(pid);
       });
 
       visualizeAudio();
       showToast('میکرۆفۆن کرایەوە');
-      socket.emit('mic-status', { isOn: true });
+      broadcast({ type: 'mic-status', peerId: myPeerId, isOn: true });
     } catch (err) {
       showToast('نەتوانرا میکرۆفۆن بکرێتەوە');
       console.error(err);
     }
   }
 
-  function stopVoice() {
+  function stopMic() {
     if (micStream) {
       micStream.getTracks().forEach(t => t.stop());
       micStream = null;
@@ -1317,66 +1645,46 @@
     isMicOn = false;
     updateMicUI(false);
 
-    Object.values(peers).forEach(pc => pc.close());
-    peers = {};
-
-    Object.values(remoteAudioElements).forEach(el => el.remove());
-    remoteAudioElements = {};
+    // Close all calls (we'll re-establish receive-only when we turn mic back on)
+    Object.values(activeCalls).forEach(call => call.close());
+    activeCalls = {};
 
     showToast('میکرۆفۆن داخرا');
-    socket.emit('mic-status', { isOn: false });
+    broadcast({ type: 'mic-status', peerId: myPeerId, isOn: false });
   }
 
-  function createPeerConnection(userId, isInitiator) {
-    if (peers[userId]) return peers[userId];
+  function callPeer(peerId) {
+    if (!micStream || !peer || activeCalls[peerId]) return;
+    console.log('[Call] Calling peer:', peerId);
+    const call = peer.call(peerId, micStream);
+    if (call) setupCallStream(call);
+  }
 
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    });
+  function setupCallStream(call) {
+    activeCalls[call.peer] = call;
 
-    peers[userId] = pc;
-
-    if (micStream) {
-      micStream.getTracks().forEach(track => pc.addTrack(track, micStream));
-    }
-
-    pc.ontrack = (event) => {
-      const [stream] = event.streams;
-      if (!remoteAudioElements[userId]) {
+    call.on('stream', (remoteStream) => {
+      console.log('[Call] Got stream from', call.peer);
+      if (!remoteAudioElements[call.peer]) {
         const audio = document.createElement('audio');
         audio.autoplay = true;
-        audio.srcObject = stream;
-        audio.id = 'audio-' + userId;
+        audio.srcObject = remoteStream;
         audio.style.display = 'none';
         document.body.appendChild(audio);
-        remoteAudioElements[userId] = audio;
+        remoteAudioElements[call.peer] = audio;
+      } else {
+        remoteAudioElements[call.peer].srcObject = remoteStream;
       }
-    };
+    });
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit('webrtc-ice-candidate', { targetId: userId, candidate: event.candidate });
-      }
-    };
+    call.on('close', () => {
+      delete activeCalls[call.peer];
+    });
 
-    if (isInitiator) {
-      pc.createOffer()
-        .then(offer => pc.setLocalDescription(offer))
-        .then(() => {
-          socket.emit('webrtc-offer', { targetId: userId, offer: pc.localDescription });
-        });
-    }
-
-    return pc;
-  }
-
-  // ==================== Mic UI ====================
-  async function toggleMic() {
-    if (!isMicOn) await startVoice();
-    else stopVoice();
+    call.on('error', (err) => {
+      console.log('[Call Error]', err);
+      delete activeCalls[call.peer];
+    });
   }
 
   function updateMicUI(isOn) {
@@ -1396,7 +1704,10 @@
   }
 
   function visualizeAudio() {
-    if (!isMicOn) { document.querySelectorAll('.bar').forEach(b => b.style.height = '4px'); return; }
+    if (!isMicOn || !analyser) { 
+      document.querySelectorAll('.bar').forEach(b => b.style.height = '4px'); 
+      return; 
+    }
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(dataArray);
     const bars = document.querySelectorAll('.bar');
@@ -1408,9 +1719,15 @@
     const avg = dataArray.reduce((a,b) => a+b, 0) / dataArray.length;
     const self = participants.find(p => p.isSelf);
     if (self && avg > 30) {
-      if (!self.speaking) { self.speaking = true; renderParticipants(); socket.emit('speaking-status', { isSpeaking: true }); }
+      if (!self.speaking) { 
+        self.speaking = true; 
+        renderParticipants(); 
+        broadcast({ type: 'speaking-status', peerId: myPeerId, isSpeaking: true });
+      }
     } else if (self && avg <= 30 && self.speaking) {
-      self.speaking = false; renderParticipants(); socket.emit('speaking-status', { isSpeaking: false });
+      self.speaking = false; 
+      renderParticipants(); 
+      broadcast({ type: 'speaking-status', peerId: myPeerId, isSpeaking: false });
     }
     requestAnimationFrame(visualizeAudio);
   }
@@ -1432,9 +1749,36 @@
     currentWebUrl = '';
   }
 
+  function getCurrentVideoState() {
+    if (currentVideoType === 'none') return { videoType: 'none' };
+    return {
+      videoType: currentVideoType,
+      url: currentWebUrl || videoElement.src || document.getElementById('videoUrl').value,
+      videoId: youtubePlayer ? youtubePlayer.getVideoData()?.video_id : null,
+      filename: currentVideoType === 'file' ? 'local-file' : null,
+      currentTime: videoElement.currentTime,
+      paused: videoElement.paused
+    };
+  }
+
+  function restoreVideoState(state) {
+    if (!state || state.videoType === 'none') return;
+
+    if (state.videoType === 'youtube' && state.videoId) {
+      loadYouTube(state.videoId, true);
+    } else if (state.videoType === 'direct' && state.url) {
+      loadDirectVideo(state.url, true);
+    } else if (state.videoType === 'web' && state.url) {
+      document.getElementById('webUrl').value = state.url;
+      loadWebsite(true);
+    } else if (state.videoType === 'file') {
+      showToast('هاوڕێ فایلێک بارکرد. تکایە فایلەکە لە ئامێرەکەتدا باربکە.');
+    }
+  }
+
   function emitVideoAction(action, data) {
     if (!isSyncing && currentRoom) {
-      socket.emit('video-action', { action, data });
+      broadcast({ type: 'video', action, data: { ...data, fromPeer: myPeerId } });
     }
   }
 
@@ -1458,23 +1802,8 @@
         }
         break;
       case 'load':
-        handleRemoteVideo(data);
+        restoreVideoState(data);
         break;
-    }
-  }
-
-  function handleRemoteVideo(data) {
-    if (data.videoType === 'youtube' && data.videoId) {
-      document.getElementById('videoUrl').value = 'https://youtube.com/watch?v=' + data.videoId;
-      loadYouTube(data.videoId, true);
-    } else if (data.videoType === 'direct' && data.url) {
-      document.getElementById('videoUrl').value = data.url;
-      loadDirectVideo(data.url, true);
-    } else if (data.videoType === 'web' && data.url) {
-      document.getElementById('webUrl').value = data.url;
-      loadWebsite(true);
-    } else if (data.videoType === 'file' && data.filename) {
-      showToast('هاوڕێ فایلی "' + data.filename + '" بارکرد. تۆش فایلەکە باربکە.');
     }
   }
 
@@ -1496,7 +1825,7 @@
     }
   }
 
-  // URL / Direct
+  // URL
   function loadVideoUrl() {
     const url = document.getElementById('videoUrl').value.trim();
     const errorDiv = document.getElementById('urlError');
@@ -1646,11 +1975,21 @@
   function togglePlay() {
     if (currentVideoType === 'youtube' && youtubePlayer) {
       const state = youtubePlayer.getPlayerState();
-      if (state === YT.PlayerState.PLAYING) { youtubePlayer.pauseVideo(); emitVideoAction('pause', {}); }
-      else { youtubePlayer.playVideo(); emitVideoAction('play', {}); }
+      if (state === YT.PlayerState.PLAYING) { 
+        youtubePlayer.pauseVideo(); 
+        emitVideoAction('pause', {}); 
+      } else { 
+        youtubePlayer.playVideo(); 
+        emitVideoAction('play', {}); 
+      }
     } else {
-      if (videoElement.paused) { videoElement.play(); emitVideoAction('play', { time: videoElement.currentTime }); }
-      else { videoElement.pause(); emitVideoAction('pause', { time: videoElement.currentTime }); }
+      if (videoElement.paused) { 
+        videoElement.play(); 
+        emitVideoAction('play', { time: videoElement.currentTime }); 
+      } else { 
+        videoElement.pause(); 
+        emitVideoAction('pause', { time: videoElement.currentTime }); 
+      }
     }
     updatePlayButton();
   }
@@ -1713,47 +2052,6 @@
     else document.getElementById('muteBtn').textContent = '🔊';
   }
 
-  // ==================== Participants ====================
-  function renderParticipants() {
-    const list = document.getElementById('participantsList');
-    list.innerHTML = '';
-
-    participants.forEach((p, i) => {
-      const div = document.createElement('div');
-      div.className = 'participant ' + (p.speaking ? 'speaking' : '');
-      const initials = p.name.split(' ').map(n => n[0]).join('').substring(0, 2);
-      div.innerHTML = `
-        <div class="avatar ${p.speaking ? 'speaking' : ''}">
-          ${initials}
-          ${p.isHost ? '<div class="avatar-host">👑</div>' : ''}
-        </div>
-        <div class="participant-info">
-          <div class="participant-name">${p.name} ${p.isSelf ? '(تۆ)' : ''}</div>
-          <div class="participant-status">
-            <span class="status-dot ${p.muted ? 'muted' : ''}"></span>
-            ${p.muted ? 'میکرۆفۆن داخراوە' : (p.speaking ? 'قسە دەکات...' : 'بەردەستە')}
-          </div>
-        </div>
-      `;
-      list.appendChild(div);
-    });
-
-    for (let i = participants.length; i < 5; i++) {
-      const div = document.createElement('div');
-      div.className = 'participant slot-empty';
-      div.innerHTML = `
-        <div class="avatar">؟</div>
-        <div class="participant-info">
-          <div class="participant-name" style="color: var(--muted);">بەشداربوونی ${i + 1}</div>
-          <div class="participant-status">بەردەست نییە</div>
-        </div>
-      `;
-      list.appendChild(div);
-    }
-
-    document.getElementById('participantCount').textContent = participants.length;
-  }
-
   // ==================== Tabs & Chat ====================
   function switchTab(btn, tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1766,8 +2064,12 @@
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if (!text) return;
-    socket.emit('chat-message', { text });
+
+    const time = new Date().toISOString();
+    addMessage(currentUser, text, true, time);
     input.value = '';
+
+    broadcast({ type: 'chat', user: currentUser, text, time });
   }
 
   function addMessage(user, text, isSelf, timeStr) {
@@ -1781,7 +2083,7 @@
 
     msg.innerHTML = `
       <div class="message-header">
-        <span class="message-author">${user}</span>
+        <span class="message-author">${escapeHtml(user)}</span>
         <span class="message-time">${time}</span>
       </div>
       <div class="message-body">${escapeHtml(text)}</div>
@@ -1790,20 +2092,18 @@
     container.scrollTop = container.scrollHeight;
   }
 
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  function getChatHistory() {
+    const msgs = [];
+    document.querySelectorAll('.message').forEach(el => {
+      const author = el.querySelector('.message-author')?.textContent || '';
+      const body = el.querySelector('.message-body')?.textContent || '';
+      const time = new Date().toISOString(); // simplified
+      msgs.push({ user: author, text: body, time });
+    });
+    return msgs.slice(-50);
   }
 
   // ==================== UI Helpers ====================
-  function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-  }
-
   function switchSourceTab(btn, type) {
     document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
@@ -1824,25 +2124,18 @@
     loadWebsite();
   }
 
-  function copyRoomLink() {
-    const url = window.location.origin + '/?room=' + currentRoom;
-    navigator.clipboard.writeText(url).then(() => {
-      showToast('لینک کۆپی کرا! ببەستە بۆ هاوڕێکانت');
-    });
-  }
-
   // ==================== Drag & Drop ====================
-  const container = document.getElementById('videoContainer');
-  container.addEventListener('dragover', (e) => {
+  const dropContainer = document.getElementById('videoContainer');
+  dropContainer.addEventListener('dragover', (e) => {
     e.preventDefault();
     document.getElementById('uploadZone').style.borderColor = 'var(--primary)';
     document.getElementById('uploadZone').style.background = 'rgba(99,102,241,0.05)';
   });
-  container.addEventListener('dragleave', () => {
+  dropContainer.addEventListener('dragleave', () => {
     document.getElementById('uploadZone').style.borderColor = 'rgba(255,255,255,0.2)';
     document.getElementById('uploadZone').style.background = 'rgba(255,255,255,0.02)';
   });
-  container.addEventListener('drop', (e) => {
+  dropContainer.addEventListener('drop', (e) => {
     e.preventDefault();
     document.getElementById('uploadZone').style.borderColor = 'rgba(255,255,255,0.2)';
     document.getElementById('uploadZone').style.background = 'rgba(255,255,255,0.02)';
