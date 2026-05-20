@@ -2,7 +2,7 @@
 <html lang="ckb" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🎬 فلیم - سەیری فیلم لەگەڵ هاوڕێکان</title>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -21,7 +21,7 @@
       --warning: #f59e0b;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
       font-family: 'Vazirmatn', sans-serif;
@@ -30,6 +30,7 @@
       height: 100vh;
       overflow: hidden;
       position: relative;
+      touch-action: manipulation;
     }
 
     .bg-animation {
@@ -258,7 +259,7 @@
       gap: 0.5rem;
     }
 
-    .room-info { display: flex; align-items: center; gap: 1.5rem; }
+    .room-info { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 
     .room-badge {
       padding: 0.5rem 1.25rem;
@@ -281,6 +282,7 @@
       flex: 1;
       display: flex;
       overflow: hidden;
+      position: relative;
     }
 
     .video-section {
@@ -311,6 +313,7 @@
       width: 100%;
       height: 100%;
       border: none;
+      object-fit: contain;
     }
 
     #webView {
@@ -321,7 +324,6 @@
     #screenVideo {
       background: #000;
       display: none;
-      object-fit: contain;
     }
 
     .video-overlay {
@@ -457,6 +459,7 @@
     }
 
     .video-container:hover .video-controls { opacity: 1; }
+    .video-container.show-controls .video-controls { opacity: 1; }
 
     .progress-container {
       width: 100%;
@@ -535,6 +538,7 @@
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
+      transition: transform 0.3s ease;
     }
 
     .tabs { display: flex; border-bottom: 1px solid var(--border); }
@@ -891,6 +895,63 @@
       display: none;
     }
 
+    .screen-controls-overlay {
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.75rem;
+      z-index: 20;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .video-container:hover .screen-controls-overlay,
+    .video-container.show-controls .screen-controls-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .screen-control-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .screen-control-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .mobile-sidebar-toggle {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .mobile-sidebar-toggle:hover { background: rgba(255,255,255,0.2); }
+
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
@@ -915,15 +976,60 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
+    /* ==================== MOBILE RESPONSIVE ==================== */
     @media (max-width: 768px) {
-      .sidebar { display: none; }
       .logo { font-size: 3rem; }
       .features { flex-direction: column; gap: 0.5rem; text-align: center; }
       .room-form { padding: 1.5rem; }
       .url-input-group { flex-direction: column; }
       .url-input-group .btn { width: 100%; }
       .top-bar { padding: 0.75rem 1rem; }
-      .video-section { padding: 0.75rem; }
+      .video-section { padding: 0.5rem; }
+      .video-container { border-radius: 16px; }
+
+      .sidebar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 85vw;
+        max-width: 320px;
+        z-index: 50;
+        transform: translateX(100%);
+        border-left: none;
+        border-right: 1px solid var(--border);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 49;
+        backdrop-filter: blur(4px);
+      }
+      .sidebar-backdrop.show { display: block; }
+
+      .mobile-sidebar-toggle { display: flex; }
+
+      .bottom-bar {
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+      }
+      .media-controls { gap: 0.75rem; }
+      .mic-section { padding: 0.4rem 0.75rem; }
+      .invite-section { gap: 0.5rem; }
+
+      .screen-controls-overlay {
+        top: auto;
+        bottom: 5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 1;
+        pointer-events: auto;
+      }
     }
   </style>
 <base target="_blank">
@@ -998,23 +1104,37 @@
         </div>
         <div class="connection-status online" id="roomConnStatus" style="position: static; font-size: 0.75rem; padding: 0.25rem 0.75rem;">🟢 پەیوەندیدار</div>
       </div>
-      <button class="btn btn-secondary" onclick="leaveRoom()" style="width: auto; padding: 0.75rem 1.5rem;">
-        🚪 چوونە دەرەوە
-      </button>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button class="mobile-sidebar-toggle" id="mobileSidebarToggle" onclick="toggleMobileSidebar()" title="چات و بەشداربووان">💬</button>
+        <button class="btn btn-secondary" onclick="leaveRoom()" style="width: auto; padding: 0.75rem 1.5rem;">
+          🚪 چوونە دەرەوە
+        </button>
+      </div>
     </div>
 
     <div class="main-content">
+      <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMobileSidebar()"></div>
+
       <div class="video-section">
         <div class="video-container" id="videoContainer">
           <video id="videoPlayer" playsinline preload="metadata" style="display: none;"></video>
           <iframe id="iframeView" style="display: none;" allow="autoplay; fullscreen"></iframe>
           <div id="webView" style="display: none;"></div>
-          <video id="screenVideo" playsinline autoplay style="display: none;"></video>
+          <video id="screenVideo" playsinline autoplay muted style="display: none;"></video>
 
           <div class="web-controls" id="webControls">
             <button class="web-control-btn" onclick="reloadWeb()">🔄 نوێکردنەوە</button>
             <button class="web-control-btn" onclick="openInNewTab()">↗️ کردنەوە لە تابی نوێ</button>
             <button class="web-control-btn" onclick="closeWeb()">❌ داخستن</button>
+          </div>
+
+          <div class="screen-controls-overlay" id="screenControlsOverlay">
+            <button class="screen-control-btn" onclick="toggleFullscreen()">
+              ⛶ فوڵ سکرین
+            </button>
+            <button class="screen-control-btn" onclick="stopScreenShare()" id="stopScreenOverlayBtn" style="display:none;">
+              ⏹ وەستاندنی شەیرکردن
+            </button>
           </div>
 
           <div class="video-overlay" id="videoOverlay">
@@ -1104,7 +1224,8 @@
                 <div class="hint-text">
                   ⚠️ تەنها ئەدمین دەتوانێت سکرین شێر بکات<br>
                   🖱️ هەموو کردارەکان لەسەر سکرینەکەت نیشان دەدرێن<br>
-                  👀 هەموو بەشداربووان سکرینەکەت بە تەواوی دەبینن
+                  👀 هەموو بەشداربووان سکرینەکەت بە تەواوی دەبینن<br>
+                  🔊 دەنگی سیستەم و میکرۆفۆن دەگوازرێتەوە
                 </div>
               </div>
             </div>
@@ -1122,13 +1243,14 @@
               <div class="control-group">
                 <button class="icon-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
                 <input type="range" min="0" max="100" value="100" oninput="setVolume(this.value)">
+                <button class="icon-btn" onclick="toggleFullscreen()" title="فوڵ سکرین">⛶</button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="sidebar">
+      <div class="sidebar" id="sidebar">
         <div class="tabs">
           <button class="tab active" onclick="switchTab(this, 'participants')">👥 بەشداربووان</button>
           <button class="tab" onclick="switchTab(this, 'chat')">💬 چات</button>
@@ -1198,15 +1320,16 @@
   let hostPeerId = '';
 
   // Connections
-  let connections = {}; // peerId -> DataConnection
-  let knownPeers = new Set(); // all peer IDs in room
-  let remoteAudioElements = {}; // peerId -> <audio>
-  let activeCalls = {}; // peerId -> MediaConnection (voice)
+  let connections = {};
+  let knownPeers = new Set();
+  let remoteAudioElements = {};
+  let activeCalls = {};
 
   // Screen Share
   let screenStream = null;
-  let screenCalls = {}; // peerId -> MediaConnection (screen)
+  let screenCalls = {};
   let isScreenSharing = false;
+  let screenAudioElements = {};
 
   // Media
   let micStream = null;
@@ -1230,6 +1353,7 @@
   const screenVideo = document.getElementById('screenVideo');
   const connStatusEl = document.getElementById('connStatus');
   const roomConnStatus = document.getElementById('roomConnStatus');
+  const videoContainer = document.getElementById('videoContainer');
 
   // ==================== Utility ====================
   function showToast(msg) {
@@ -1261,6 +1385,33 @@
     div.textContent = text;
     return div.innerHTML;
   }
+
+  // ==================== Mobile Sidebar ====================
+  function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('show');
+  }
+
+  // ==================== Fullscreen ====================
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      videoContainer.requestFullscreen().catch(err => {
+        showToast('نەتوانرا فوڵ سکرین بکرێت');
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+      videoContainer.style.borderRadius = '0';
+    } else {
+      videoContainer.style.borderRadius = '';
+    }
+  });
 
   // ==================== Room Management ====================
   function createRoom() {
@@ -1322,12 +1473,14 @@
 
     peer.on('call', (call) => {
       console.log('[Call] Incoming from', call.peer, 'metadata:', call.metadata);
-      // Always answer - if mic is on, send stream; if off, just receive
-      call.answer(micStream);
 
       if (call.metadata && call.metadata.type === 'screen') {
+        // Screen share call - answer with null (we only receive)
+        call.answer(null);
         handleScreenStream(call);
       } else {
+        // Voice call - answer with mic stream
+        call.answer(micStream);
         setupCallStream(call);
       }
     });
@@ -1424,10 +1577,11 @@
 
           // If screen sharing is active, call the new peer with screen stream
           if (isScreenSharing && screenStream) {
+            console.log('[Host] Calling new peer with screen:', data.peerId);
             const call = peer.call(data.peerId, screenStream, { metadata: { type: 'screen' } });
             if (call) {
               screenCalls[data.peerId] = call;
-              call.on('close', () => delete screenCalls[data.peerId]);
+              call.on('close', () => { delete screenCalls[data.peerId]; });
               call.on('error', (err) => { console.log('[Screen Call Error]', err); delete screenCalls[data.peerId]; });
             }
           }
@@ -1442,7 +1596,6 @@
       case 'user-joined':
         if (!isHost && data.peerId !== myPeerId) {
           addParticipant(data.user, data.peerId, false);
-          // Connect directly for voice mesh
           if (micStream) callPeer(data.peerId);
         }
         break;
@@ -1465,6 +1618,7 @@
           }
           if (data.screenSharing) {
             showToast('ئەدمین سکرین شێر دەکات. چاوەڕێی وەرگرتنی سترێم بکە...');
+            document.getElementById('screenIndicator').style.display = 'inline-block';
           }
         }
         break;
@@ -1560,6 +1714,10 @@
       remoteAudioElements[peerId].remove();
       delete remoteAudioElements[peerId];
     }
+    if (screenAudioElements[peerId]) {
+      screenAudioElements[peerId].remove();
+      delete screenAudioElements[peerId];
+    }
     knownPeers.delete(peerId);
 
     if (peerId === hostPeerId && !isHost) {
@@ -1581,35 +1739,50 @@
     if (isScreenSharing) return;
 
     try {
-      screenStream = await navigator.mediaDevices.getDisplayMedia({ 
-        video: { cursor: "always", displaySurface: "monitor" }, 
-        audio: false 
-      });
+      // Request display media WITH audio (system audio + mic mixed if possible)
+      // Note: audio capture depends on browser support
+      const constraints = {
+        video: {
+          cursor: "always",
+          displaySurface: "monitor",
+          width: { max: 1920 },
+          height: { max: 1080 },
+          frameRate: { max: 30 }
+        },
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      };
+
+      screenStream = await navigator.mediaDevices.getDisplayMedia(constraints);
 
       isScreenSharing = true;
 
       // Stop any existing video/iframe/web
       videoElement.pause();
       videoElement.src = '';
-      videoElement.srcObject = null;
+      videoElement.style.display = 'none';
       iframeView.style.display = 'none';
       iframeView.src = '';
       webView.style.display = 'none';
       webView.innerHTML = '';
       document.getElementById('webControls').style.display = 'none';
       document.getElementById('videoControls').style.display = 'none';
-
-      // Show local preview
-      videoElement.srcObject = screenStream;
-      videoElement.style.display = 'block';
-      videoElement.play();
       document.getElementById('videoOverlay').style.display = 'none';
+
+      // Show screen video for admin (local preview)
+      screenVideo.srcObject = screenStream;
+      screenVideo.style.display = 'block';
+      screenVideo.muted = true; // Mute local preview to avoid echo
+      screenVideo.play().catch(e => console.log('Local preview play error:', e));
 
       // Update UI
       document.getElementById('startScreenBtn').style.display = 'none';
       document.getElementById('stopScreenBtn').style.display = 'inline-block';
+      document.getElementById('stopScreenOverlayBtn').style.display = 'flex';
       document.getElementById('screenIndicator').style.display = 'inline-block';
-      document.getElementById('screenTabBtn').classList.add('active');
 
       // Notify all peers
       broadcast({ type: 'screen-started', peerId: myPeerId });
@@ -1617,6 +1790,7 @@
       // Call all known peers with screen stream
       knownPeers.forEach(pid => {
         if (pid !== myPeerId && !screenCalls[pid]) {
+          console.log('[Host] Calling peer with screen:', pid);
           const call = peer.call(pid, screenStream, { metadata: { type: 'screen' } });
           if (call) {
             screenCalls[pid] = call;
@@ -1626,7 +1800,7 @@
         }
       });
 
-      // Handle browser native stop sharing
+      // Handle browser native stop sharing button
       screenStream.getVideoTracks()[0].onended = () => {
         stopScreenShare();
       };
@@ -1639,9 +1813,13 @@
   }
 
   function stopScreenShare() {
-    if (!isHost) return;
-    if (!isScreenSharing) return;
+    if (!isHost) {
+      // Guest stopping viewing
+      stopViewingScreen();
+      return;
+    }
 
+    if (!isScreenSharing) return;
     isScreenSharing = false;
 
     if (screenStream) {
@@ -1657,19 +1835,24 @@
     broadcast({ type: 'screen-stopped', peerId: myPeerId });
 
     // Reset UI
-    videoElement.pause();
-    videoElement.srcObject = null;
-    videoElement.style.display = 'none';
+    screenVideo.pause();
+    screenVideo.srcObject = null;
+    screenVideo.style.display = 'none';
     document.getElementById('videoOverlay').style.display = 'flex';
     document.getElementById('startScreenBtn').style.display = 'inline-block';
     document.getElementById('stopScreenBtn').style.display = 'none';
+    document.getElementById('stopScreenOverlayBtn').style.display = 'none';
     document.getElementById('screenIndicator').style.display = 'none';
 
     showToast('شەیرکردنی سکرین وەستا');
   }
 
   function handleScreenStream(call) {
+    console.log('[Guest] Receiving screen stream from', call.peer);
+
     call.on('stream', (remoteStream) => {
+      console.log('[Guest] Got screen stream from', call.peer);
+
       // Hide all other video sources
       videoElement.style.display = 'none';
       iframeView.style.display = 'none';
@@ -1682,23 +1865,47 @@
       // Show screen video
       screenVideo.srcObject = remoteStream;
       screenVideo.style.display = 'block';
-      screenVideo.play().catch(e => console.log('Auto-play prevented:', e));
+      screenVideo.muted = false; // UNMUTE to hear screen audio
+      screenVideo.volume = 1.0;
+      screenVideo.play().catch(e => console.log('Screen play error:', e));
+
+      // Also create separate audio element as backup for audio
+      if (!screenAudioElements[call.peer]) {
+        const audio = document.createElement('audio');
+        audio.autoplay = true;
+        audio.srcObject = remoteStream;
+        audio.style.display = 'none';
+        document.body.appendChild(audio);
+        screenAudioElements[call.peer] = audio;
+      } else {
+        screenAudioElements[call.peer].srcObject = remoteStream;
+      }
 
       showToast('سکرینی ئەدمین نیشان دەدرێت');
     });
 
     call.on('close', () => {
+      console.log('[Guest] Screen call closed from', call.peer);
+      stopViewingScreen();
+    });
+
+    call.on('error', (err) => {
+      console.log('[Screen Call Error]', err);
       stopViewingScreen();
     });
   }
 
   function stopViewingScreen() {
+    screenVideo.pause();
     screenVideo.srcObject = null;
     screenVideo.style.display = 'none';
     document.getElementById('screenIndicator').style.display = 'none';
 
     if (!isHost) {
-      document.getElementById('videoOverlay').style.display = 'flex';
+      // Only show overlay if no other video is playing
+      if (currentVideoType === 'none') {
+        document.getElementById('videoOverlay').style.display = 'flex';
+      }
     }
     showToast('سکرین شێر کۆتایی هات');
   }
@@ -1709,7 +1916,6 @@
     document.getElementById('room').style.display = 'flex';
     document.getElementById('roomBadge').textContent = 'ڕوم: ' + currentRoom;
 
-    // Show screen tab only for admin (host)
     if (isHost) {
       document.getElementById('screenTabBtn').style.display = 'inline-block';
       document.getElementById('guestScreenMsg').style.display = 'none';
@@ -1720,7 +1926,6 @@
       document.getElementById('guestScreenMsg').style.display = 'block';
     }
 
-    // Add self
     addParticipant(currentUser, myPeerId, true);
 
     window.history.pushState({}, '', '?room=' + currentRoom);
@@ -1836,7 +2041,7 @@
     }
   }
 
-  // ==================== Voice Chat (WebRTC via PeerJS) ====================
+  // ==================== Voice Chat ====================
   async function toggleMic() {
     if (!isMicOn) await startMic();
     else stopMic();
@@ -2342,7 +2547,6 @@
 
   // ==================== UI Helpers ====================
   function switchSourceTab(btn, type) {
-    // If admin was sharing screen and switches away, stop it
     if (isScreenSharing && type !== 'screen') {
       stopScreenShare();
     }
@@ -2396,6 +2600,16 @@
       showToast('فایل بارکرا: ' + file.name);
       emitVideoAction('load', { videoType: 'file', filename: file.name });
     }
+  });
+
+  // ==================== Touch Controls for Mobile ====================
+  let touchTimeout;
+  videoContainer.addEventListener('touchstart', () => {
+    videoContainer.classList.add('show-controls');
+    clearTimeout(touchTimeout);
+    touchTimeout = setTimeout(() => {
+      videoContainer.classList.remove('show-controls');
+    }, 3000);
   });
 
   // ==================== Keyboard Shortcuts ====================
