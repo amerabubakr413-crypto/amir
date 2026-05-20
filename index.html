@@ -72,6 +72,11 @@
       to { transform: translateY(-10vh) translateX(100px); opacity: 0; }
     }
 
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
     #landing {
       position: relative;
       z-index: 10;
@@ -302,7 +307,7 @@
       justify-content: center;
     }
 
-    video, iframe, #webView {
+    video, iframe, #webView, #screenVideo {
       width: 100%;
       height: 100%;
       border: none;
@@ -311,6 +316,12 @@
     #webView {
       background: white;
       display: none;
+    }
+
+    #screenVideo {
+      background: #000;
+      display: none;
+      object-fit: contain;
     }
 
     .video-overlay {
@@ -868,6 +879,18 @@
       user-select: all;
     }
 
+    .screen-indicator {
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      background: rgba(239,68,68,0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.3);
+      font-size: 0.875rem;
+      font-weight: 600;
+      animation: pulse 2s infinite;
+      display: none;
+    }
+
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
@@ -904,6 +927,7 @@
     }
   </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
   <div class="bg-animation"></div>
@@ -920,6 +944,7 @@
 
     <div class="features">
       <div class="feature-item"><span>🎥</span> بینینی فیلم</div>
+      <div class="feature-item"><span>🖥️</span> سکرین شێر</div>
       <div class="feature-item"><span>🎤</span> قسەکردن بە دەنگ</div>
       <div class="feature-item"><span>💬</span> چاتی نوسین</div>
       <div class="feature-item"><span>👥</span> تا ٥ کەس</div>
@@ -967,6 +992,7 @@
       <div class="room-info">
         <div style="font-weight: 800; font-size: 1.5rem; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🎬 فلیم</div>
         <div class="room-badge" id="roomBadge" onclick="copyLink()" title="کۆپی کردنی لینک">ڕوم: -</div>
+        <div class="screen-indicator" id="screenIndicator">🔴 لایڤ: سکرینی ئەدمین</div>
         <div style="color: var(--muted); font-size: 0.875rem; font-weight: 500;">
           <span id="participantCount">١</span>/٥ بەشداربوو
         </div>
@@ -983,6 +1009,7 @@
           <video id="videoPlayer" playsinline preload="metadata" style="display: none;"></video>
           <iframe id="iframeView" style="display: none;" allow="autoplay; fullscreen"></iframe>
           <div id="webView" style="display: none;"></div>
+          <video id="screenVideo" playsinline autoplay style="display: none;"></video>
 
           <div class="web-controls" id="webControls">
             <button class="web-control-btn" onclick="reloadWeb()">🔄 نوێکردنەوە</button>
@@ -994,12 +1021,13 @@
             <div class="upload-zone" id="uploadZone">
               <div class="upload-icon">🎬</div>
               <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">فیلمێک هەڵبژێرە بۆ بینین</div>
-              <div style="color: var(--muted); margin-bottom: 1.5rem;">فایل، لینک، یان هەر وێبسایتێک بەکاربهێنە</div>
+              <div style="color: var(--muted); margin-bottom: 1.5rem;">فایل، لینک، سکرین، یان هەر وێبسایتێک بەکاربهێنە</div>
 
               <div class="source-tabs">
                 <button class="source-tab active" onclick="switchSourceTab(this, 'file')">📁 فایل</button>
                 <button class="source-tab" onclick="switchSourceTab(this, 'url')">🔗 لینک</button>
                 <button class="source-tab" onclick="switchSourceTab(this, 'web')">🌐 وێب</button>
+                <button class="source-tab" onclick="switchSourceTab(this, 'screen')" id="screenTabBtn" style="display:none;">🖥️ سکرین</button>
               </div>
 
               <div class="source-panel active" id="panel-file">
@@ -1055,6 +1083,28 @@
                   <button class="platform-btn" onclick="setWebUrl('https://kurdfilm.krd')" title="KurdFilm">🎬</button>
                   <button class="platform-btn" onclick="setWebUrl('https://vimeo.com')" title="Vimeo">📹</button>
                   <button class="platform-btn" onclick="setWebUrl('https://dailymotion.com')" title="Dailymotion">📺</button>
+                </div>
+              </div>
+
+              <div class="source-panel" id="panel-screen">
+                <div style="text-align: center; padding: 1rem 0;">
+                  <div style="font-size: 3rem; margin-bottom: 1rem;">🖥️</div>
+                  <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">شەیرکردنی سکرین</div>
+                  <div style="color: var(--muted); margin-bottom: 1.5rem;">سکرینی خۆت لەگەڵ هەموو بەشداربوواندا ببینە</div>
+                  <button class="btn btn-primary" onclick="startScreenShare()" id="startScreenBtn" style="width: auto; padding: 0.875rem 2rem;">
+                    🖥️ دەستپێکردنی شەیرکردن
+                  </button>
+                  <button class="btn btn-secondary" onclick="stopScreenShare()" id="stopScreenBtn" style="width: auto; padding: 0.875rem 2rem; margin-top: 0.75rem; display: none;">
+                    ⏹ وەستاندن
+                  </button>
+                  <div id="guestScreenMsg" style="display:none; margin-top: 1rem; color: var(--muted);">
+                    🔒 تەنها ئەدمین دەتوانێت سکرین شێر بکات
+                  </div>
+                </div>
+                <div class="hint-text">
+                  ⚠️ تەنها ئەدمین دەتوانێت سکرین شێر بکات<br>
+                  🖱️ هەموو کردارەکان لەسەر سکرینەکەت نیشان دەدرێن<br>
+                  👀 هەموو بەشداربووان سکرینەکەت بە تەواوی دەبینن
                 </div>
               </div>
             </div>
@@ -1151,7 +1201,12 @@
   let connections = {}; // peerId -> DataConnection
   let knownPeers = new Set(); // all peer IDs in room
   let remoteAudioElements = {}; // peerId -> <audio>
-  let activeCalls = {}; // peerId -> MediaConnection
+  let activeCalls = {}; // peerId -> MediaConnection (voice)
+
+  // Screen Share
+  let screenStream = null;
+  let screenCalls = {}; // peerId -> MediaConnection (screen)
+  let isScreenSharing = false;
 
   // Media
   let micStream = null;
@@ -1172,6 +1227,7 @@
   const videoElement = document.getElementById('videoPlayer');
   const iframeView = document.getElementById('iframeView');
   const webView = document.getElementById('webView');
+  const screenVideo = document.getElementById('screenVideo');
   const connStatusEl = document.getElementById('connStatus');
   const roomConnStatus = document.getElementById('roomConnStatus');
 
@@ -1256,7 +1312,6 @@
     });
 
     peer.on('connection', (conn) => {
-      // Host receives guest connection, or guest receives direct connection from another guest
       conn.on('open', () => {
         handleConnectionOpen(conn);
       });
@@ -1266,10 +1321,15 @@
     });
 
     peer.on('call', (call) => {
-      console.log('[Call] Incoming from', call.peer);
+      console.log('[Call] Incoming from', call.peer, 'metadata:', call.metadata);
       // Always answer - if mic is on, send stream; if off, just receive
       call.answer(micStream);
-      setupCallStream(call);
+
+      if (call.metadata && call.metadata.type === 'screen') {
+        handleScreenStream(call);
+      } else {
+        setupCallStream(call);
+      }
     });
 
     peer.on('error', (err) => {
@@ -1319,7 +1379,6 @@
     });
     conn.on('error', (err) => console.log('[Host Conn Error]', err));
 
-    // Timeout if can't connect
     setTimeout(() => {
       if (!conn.open) {
         showToast('نەتوانرا بگاتە ڕومەکە. دڵنیابەرەوە لە کۆدەکە.');
@@ -1338,7 +1397,6 @@
     connections[peerId] = conn;
     knownPeers.add(peerId);
 
-    // If guest, and this is a direct connection from another guest, add them
     if (!isHost) {
       knownPeers.add(peerId);
     }
@@ -1350,7 +1408,6 @@
     switch (data.type) {
       case 'join':
         if (isHost) {
-          // New guest joined - add to participants
           addParticipant(data.user, data.peerId, false);
 
           // Tell everyone about this new user
@@ -1361,8 +1418,22 @@
             type: 'room-state',
             users: participants.map(p => ({ name: p.name, peerId: p.id, isHost: p.isHost })),
             video: getCurrentVideoState(),
-            messages: getChatHistory()
+            messages: getChatHistory(),
+            screenSharing: isScreenSharing
           });
+
+          // If screen sharing is active, call the new peer with screen stream
+          if (isScreenSharing && screenStream) {
+            const call = peer.call(data.peerId, screenStream, { metadata: { type: 'screen' } });
+            if (call) {
+              screenCalls[data.peerId] = call;
+              call.on('close', () => delete screenCalls[data.peerId]);
+              call.on('error', (err) => { console.log('[Screen Call Error]', err); delete screenCalls[data.peerId]; });
+            }
+          }
+
+          // Send peer list for mesh
+          conn.send({ type: 'peer-list', peers: Array.from(knownPeers) });
 
           showToast(data.user + ' بەشداری کرد!');
         }
@@ -1378,22 +1449,22 @@
 
       case 'room-state':
         if (!isHost) {
-          // Sync participants
           participants = [];
           if (data.users) {
             data.users.forEach(u => {
               addParticipant(u.name, u.peerId, u.isHost);
             });
           }
-          // Sync video
           if (data.video && data.video.videoType !== 'none') {
             isSyncing = true;
             restoreVideoState(data.video);
             setTimeout(() => isSyncing = false, 500);
           }
-          // Sync chat
           if (data.messages) {
             data.messages.forEach(m => addMessage(m.user, m.text, m.user === currentUser, m.time));
+          }
+          if (data.screenSharing) {
+            showToast('ئەدمین سکرین شێر دەکات. چاوەڕێی وەرگرتنی سترێم بکە...');
           }
         }
         break;
@@ -1424,7 +1495,8 @@
             type: 'room-state',
             users: participants.map(p => ({ name: p.name, peerId: p.id, isHost: p.isHost })),
             video: getCurrentVideoState(),
-            messages: getChatHistory()
+            messages: getChatHistory(),
+            screenSharing: isScreenSharing
           });
         }
         break;
@@ -1434,14 +1506,30 @@
           data.peers.forEach(pid => {
             if (pid !== myPeerId && !connections[pid]) {
               knownPeers.add(pid);
-              // Connect directly for better mesh
               const directConn = peer.connect(pid, { reliable: true });
               directConn.on('open', () => { connections[pid] = directConn; });
               directConn.on('data', (d) => handleData(d, directConn));
-              // Call for voice
               if (micStream) callPeer(pid);
             }
           });
+        }
+        break;
+
+      case 'screen-started':
+        if (!isHost) {
+          showToast('ئەدمین سکرین شێر دەکات...');
+          document.getElementById('screenIndicator').style.display = 'inline-block';
+        }
+        break;
+
+      case 'screen-stopped':
+        stopViewingScreen();
+        break;
+
+      case 'leave':
+        if (data.peerId && data.user) {
+          showToast(data.user + ' ڕومەکەی جێهێشت!');
+          handleDisconnect(data.peerId);
         }
         break;
     }
@@ -1464,13 +1552,16 @@
       activeCalls[peerId].close();
       delete activeCalls[peerId];
     }
+    if (screenCalls[peerId]) {
+      try { screenCalls[peerId].close(); } catch(e) {}
+      delete screenCalls[peerId];
+    }
     if (remoteAudioElements[peerId]) {
       remoteAudioElements[peerId].remove();
       delete remoteAudioElements[peerId];
     }
     knownPeers.delete(peerId);
 
-    // If host disconnected and I'm guest, room is dead
     if (peerId === hostPeerId && !isHost) {
       setConnStatus('offline', '🔴 هۆست دەرچوو');
       showToast('هۆستەکە دەرچوو. ڕومەکە ناچالاک بوو.');
@@ -1484,11 +1575,150 @@
     });
   }
 
+  // ==================== Screen Sharing ====================
+  async function startScreenShare() {
+    if (!isHost) { showToast('تەنها ئەدمین دەتوانێت سکرین شێر بکات!'); return; }
+    if (isScreenSharing) return;
+
+    try {
+      screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+        video: { cursor: "always", displaySurface: "monitor" }, 
+        audio: false 
+      });
+
+      isScreenSharing = true;
+
+      // Stop any existing video/iframe/web
+      videoElement.pause();
+      videoElement.src = '';
+      videoElement.srcObject = null;
+      iframeView.style.display = 'none';
+      iframeView.src = '';
+      webView.style.display = 'none';
+      webView.innerHTML = '';
+      document.getElementById('webControls').style.display = 'none';
+      document.getElementById('videoControls').style.display = 'none';
+
+      // Show local preview
+      videoElement.srcObject = screenStream;
+      videoElement.style.display = 'block';
+      videoElement.play();
+      document.getElementById('videoOverlay').style.display = 'none';
+
+      // Update UI
+      document.getElementById('startScreenBtn').style.display = 'none';
+      document.getElementById('stopScreenBtn').style.display = 'inline-block';
+      document.getElementById('screenIndicator').style.display = 'inline-block';
+      document.getElementById('screenTabBtn').classList.add('active');
+
+      // Notify all peers
+      broadcast({ type: 'screen-started', peerId: myPeerId });
+
+      // Call all known peers with screen stream
+      knownPeers.forEach(pid => {
+        if (pid !== myPeerId && !screenCalls[pid]) {
+          const call = peer.call(pid, screenStream, { metadata: { type: 'screen' } });
+          if (call) {
+            screenCalls[pid] = call;
+            call.on('close', () => { delete screenCalls[pid]; });
+            call.on('error', (err) => { console.log('[Screen Call Error]', err); delete screenCalls[pid]; });
+          }
+        }
+      });
+
+      // Handle browser native stop sharing
+      screenStream.getVideoTracks()[0].onended = () => {
+        stopScreenShare();
+      };
+
+      showToast('سکرین شێر کرا. هەموو کەس سکرینەکەت دەبینن.');
+    } catch (err) {
+      console.error('[Screen Share Error]', err);
+      showToast('نەتوانرا سکرین شێر بکرێت. دڵنیابەرەوە لە ڕێگەدان.');
+    }
+  }
+
+  function stopScreenShare() {
+    if (!isHost) return;
+    if (!isScreenSharing) return;
+
+    isScreenSharing = false;
+
+    if (screenStream) {
+      screenStream.getTracks().forEach(t => t.stop());
+      screenStream = null;
+    }
+
+    Object.values(screenCalls).forEach(call => {
+      try { call.close(); } catch(e) {}
+    });
+    screenCalls = {};
+
+    broadcast({ type: 'screen-stopped', peerId: myPeerId });
+
+    // Reset UI
+    videoElement.pause();
+    videoElement.srcObject = null;
+    videoElement.style.display = 'none';
+    document.getElementById('videoOverlay').style.display = 'flex';
+    document.getElementById('startScreenBtn').style.display = 'inline-block';
+    document.getElementById('stopScreenBtn').style.display = 'none';
+    document.getElementById('screenIndicator').style.display = 'none';
+
+    showToast('شەیرکردنی سکرین وەستا');
+  }
+
+  function handleScreenStream(call) {
+    call.on('stream', (remoteStream) => {
+      // Hide all other video sources
+      videoElement.style.display = 'none';
+      iframeView.style.display = 'none';
+      webView.style.display = 'none';
+      document.getElementById('videoOverlay').style.display = 'none';
+      document.getElementById('videoControls').style.display = 'none';
+      document.getElementById('webControls').style.display = 'none';
+      document.getElementById('screenIndicator').style.display = 'inline-block';
+
+      // Show screen video
+      screenVideo.srcObject = remoteStream;
+      screenVideo.style.display = 'block';
+      screenVideo.play().catch(e => console.log('Auto-play prevented:', e));
+
+      showToast('سکرینی ئەدمین نیشان دەدرێت');
+    });
+
+    call.on('close', () => {
+      stopViewingScreen();
+    });
+  }
+
+  function stopViewingScreen() {
+    screenVideo.srcObject = null;
+    screenVideo.style.display = 'none';
+    document.getElementById('screenIndicator').style.display = 'none';
+
+    if (!isHost) {
+      document.getElementById('videoOverlay').style.display = 'flex';
+    }
+    showToast('سکرین شێر کۆتایی هات');
+  }
+
   // ==================== Room UI ====================
   function enterRoom() {
     document.getElementById('landing').style.display = 'none';
     document.getElementById('room').style.display = 'flex';
     document.getElementById('roomBadge').textContent = 'ڕوم: ' + currentRoom;
+
+    // Show screen tab only for admin (host)
+    if (isHost) {
+      document.getElementById('screenTabBtn').style.display = 'inline-block';
+      document.getElementById('guestScreenMsg').style.display = 'none';
+    } else {
+      document.getElementById('screenTabBtn').style.display = 'inline-block';
+      document.getElementById('startScreenBtn').style.display = 'none';
+      document.getElementById('stopScreenBtn').style.display = 'none';
+      document.getElementById('guestScreenMsg').style.display = 'block';
+    }
 
     // Add self
     addParticipant(currentUser, myPeerId, true);
@@ -1513,9 +1743,11 @@
 
   function leaveRoom() {
     if (peer) {
+      if (isScreenSharing) stopScreenShare();
       broadcast({ type: 'leave', peerId: myPeerId, user: currentUser });
       Object.values(connections).forEach(c => c.close());
       Object.values(activeCalls).forEach(c => c.close());
+      Object.values(screenCalls).forEach(c => c.close());
       peer.destroy();
     }
     location.href = location.pathname;
@@ -1580,7 +1812,7 @@
           ${p.isHost ? '<div class="avatar-host">👑</div>' : ''}
         </div>
         <div class="participant-info">
-          <div class="participant-name">${p.name} ${p.isSelf ? '(تۆ)' : ''}</div>
+          <div class="participant-name">${p.name} ${p.isSelf ? '(تۆ)' : ''} ${p.isHost ? '<span style="color:var(--warning); font-size:0.75rem;">[ئەدمین]</span>' : ''}</div>
           <div class="participant-status">
             <span class="status-dot ${p.muted ? 'muted' : ''}"></span>
             ${p.muted ? 'میکرۆفۆن داخراوە' : (p.speaking ? 'قسە دەکات...' : 'بەردەستە')}
@@ -1623,7 +1855,6 @@
       isMicOn = true;
       updateMicUI(true);
 
-      // Call all known peers for voice mesh
       knownPeers.forEach(pid => {
         if (pid !== myPeerId) callPeer(pid);
       });
@@ -1645,7 +1876,6 @@
     isMicOn = false;
     updateMicUI(false);
 
-    // Close all calls (we'll re-establish receive-only when we turn mic back on)
     Object.values(activeCalls).forEach(call => call.close());
     activeCalls = {};
 
@@ -1736,6 +1966,7 @@
   function resetVideoPlayer() {
     videoElement.pause();
     videoElement.src = '';
+    videoElement.srcObject = null;
     videoElement.style.display = 'none';
     iframeView.style.display = 'none';
     iframeView.src = '';
@@ -1809,6 +2040,7 @@
 
   // File
   function loadVideoFile(input) {
+    if (isScreenSharing) stopScreenShare();
     const file = input.files[0];
     if (file) {
       resetVideoPlayer();
@@ -1827,6 +2059,7 @@
 
   // URL
   function loadVideoUrl() {
+    if (isScreenSharing) stopScreenShare();
     const url = document.getElementById('videoUrl').value.trim();
     const errorDiv = document.getElementById('urlError');
     if (!url) { errorDiv.textContent = 'تکایە لینکێک بنووسە'; errorDiv.style.display = 'block'; return; }
@@ -1850,6 +2083,7 @@
   }
 
   function loadDirectVideo(url, skipEmit = false) {
+    if (isScreenSharing) stopScreenShare();
     resetVideoPlayer();
     videoElement.src = url;
     videoElement.style.display = 'block';
@@ -1874,6 +2108,7 @@
   }
 
   function loadYouTube(videoId, skipEmit = false) {
+    if (isScreenSharing) stopScreenShare();
     resetVideoPlayer();
     iframeView.style.display = 'block';
     currentVideoType = 'youtube';
@@ -1916,6 +2151,7 @@
 
   // Website
   function loadWebsite(skipEmit = false) {
+    if (isScreenSharing) stopScreenShare();
     let url = document.getElementById('webUrl').value.trim();
     const errorDiv = document.getElementById('webError');
     const blockNotice = document.getElementById('blockNotice');
@@ -1961,6 +2197,7 @@
   }
 
   function loadIframe(url, skipEmit = false) {
+    if (isScreenSharing) stopScreenShare();
     resetVideoPlayer();
     iframeView.src = url;
     iframeView.style.display = 'block';
@@ -2097,7 +2334,7 @@
     document.querySelectorAll('.message').forEach(el => {
       const author = el.querySelector('.message-author')?.textContent || '';
       const body = el.querySelector('.message-body')?.textContent || '';
-      const time = new Date().toISOString(); // simplified
+      const time = new Date().toISOString();
       msgs.push({ user: author, text: body, time });
     });
     return msgs.slice(-50);
@@ -2105,6 +2342,11 @@
 
   // ==================== UI Helpers ====================
   function switchSourceTab(btn, type) {
+    // If admin was sharing screen and switches away, stop it
+    if (isScreenSharing && type !== 'screen') {
+      stopScreenShare();
+    }
+
     document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.source-panel').forEach(p => p.classList.remove('active'));
@@ -2141,6 +2383,7 @@
     document.getElementById('uploadZone').style.background = 'rgba(255,255,255,0.02)';
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('video/')) {
+      if (isScreenSharing) stopScreenShare();
       const url = URL.createObjectURL(file);
       resetVideoPlayer();
       videoElement.src = url;
