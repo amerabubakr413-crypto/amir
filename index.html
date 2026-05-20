@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎬 فلیم - سەیری فیلم لەگەڵ هاوڕێکان</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --secondary: #8b5cf6;
+      --accent: #ec4899;
+      --dark: #050508;
+      --card: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.08);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .bg-animation {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 0% 0%, rgba(99,102,241,0.2) 0%, transparent 40%),
+        radial-gradient(circle at 100% 100%, rgba(236,72,153,0.15) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(139,92,246,0.08) 0%, transparent 60%);
+      animation: bgPulse 10s ease-in-out infinite;
+    }
+    
+    .particles {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      animation: float 20s infinite linear;
+    }
+    
+    @keyframes bgPulse {
+      0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+      50% { opacity: 0.8; transform: scale(1.1) rotate(2deg); }
+    }
+    
+    @keyframes float {
+      from { transform: translateY(100vh) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      to { transform: translateY(-10vh) translateX(100px); opacity: 0; }
+    }
+    
+    #landing {
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      animation: fadeIn 0.8s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .logo-container { text-align: center; margin-bottom: 2rem; }
+    
+    .logo {
+      font-size: 5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 80px rgba(99,102,241,0.4);
+      letter-spacing: -2px;
+      animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.2); }
+    }
+    
+    .tagline {
+      font-size: 1.5rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      font-weight: 300;
+    }
+    
+    .features {
+      display: flex;
+      gap: 2rem;
+      margin: 2rem 0;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+    
+    .feature-item { display: flex; align-items: center; gap: 0.5rem; }
+    
+    .room-form {
+      width: 100%;
+      max-width: 460px;
+      padding: 2.5rem;
+      border-radius: 32px;
+      background: rgba(255,255,255,0.02);
+      backdrop-filter: blur(40px);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+    
+    .input-group { margin-bottom: 1.25rem; }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    
+    input {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.1), 0 0 20px rgba(99,102,241,0.1);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 16px;
+      border: none;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    
+    .btn:hover::before { transform: translateX(100%); }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: 0 4px 24px rgba(99,102,241,0.4);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(99,102,241,0.5);
+    }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin: 1.5rem 0;
+    }
+    
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+    
+    #room {
+      display: none;
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      flex-direction: column;
+    }
+    
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .room-info { display: flex; align-items: center; gap: 1.5rem; }
+    
+    .room-badge {
+      padding: 0.5rem 1.25rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+      border: 1px solid rgba(99,102,241,0.3);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.875rem;
+      letter-spacing: 1px;
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    
+    .video-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      gap: 1rem;
+    }
+    
+    .video-container {
+      flex: 1;
+      position: relative;
+      border-radius: 28px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0a0a0f, #1a1a2e);
+      box-shadow: 
+        0 25px 50px -12px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.05),
+        inset 0 0 80px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    video, iframe, #webView {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    #webView {
+      background: white;
+      display: none;
+    }
+    
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      z-index: 5;
+      transition: opacity 0.4s;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    
+    .upload-zone {
+      width: 100%;
+      max-width: 560px;
+      border: 2px dashed rgba(255,255,255,0.2);
+      border-radius: 24px;
+      padding: 2.5rem;
+      text-align: center;
+      transition: all 0.3s;
+      background: rgba(255,255,255,0.02);
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--primary);
+      background: rgba(99,102,241,0.05);
+      transform: scale(1.02);
+    }
+    
+    .upload-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    
+    .source-tabs {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .source-tab {
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    
+    .source-tab:hover { border-color: var(--primary); color: var(--text); }
+    
+    .source-tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+    }
+    
+    .source-panel { display: none; animation: fadeIn 0.3s ease-out; }
+    .source-panel.active { display: block; }
+    
+    .url-input-group { display: flex; gap: 0.75rem; margin-top: 1rem; }
+    .url-input-group input { flex: 1; text-align: left; direction: ltr; }
+    .url-input-group .btn { width: auto; padding: 0 1.5rem; white-space: nowrap; }
+    
+    .platform-icons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .platform-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .platform-btn:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+      box-shadow: 0 8px 16px rgba(99,102,241,0.2);
+    }
+    
+    .file-upload {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      margin-top: 1rem;
+    }
+    
+    .file-upload input[type=file] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 3rem 2rem 1.5rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 10;
+    }
+    
+    .video-container:hover .video-controls { opacity: 1; }
+    
+    .progress-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 3px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 3px;
+      width: 0%;
+      position: relative;
+      transition: width 0.1s linear;
+    }
+    
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: progressShine 2s infinite;
+    }
+    
+    @keyframes progressShine {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(100%); }
+    }
+    
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .control-group { display: flex; align-items: center; gap: 1rem; }
+    
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+    
+    .icon-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+    .icon-btn.active { background: var(--primary); box-shadow: 0 0 20px rgba(99,102,241,0.4); }
+    
+    .time-display {
+      font-size: 0.875rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    
+    .sidebar {
+      width: 340px;
+      border-left: 1px solid var(--border);
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .tabs { display: flex; border-bottom: 1px solid var(--border); }
+    
+    .tab {
+      flex: 1;
+      padding: 1.25rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    
+    .tab:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+    .tab.active { color: var(--text); }
+    
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 25%;
+      right: 25%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 3px;
+    }
+    
+    .tab-content { flex: 1; overflow-y: auto; padding: 1.25rem; }
+    
+    .participant {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 16px;
+      margin-bottom: 0.75rem;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+    }
+    
+    .participant:hover { background: rgba(255,255,255,0.03); border-color: var(--border); }
+    .participant.speaking { background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2); }
+    
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.875rem;
+      position: relative;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    }
+    
+    .avatar.speaking { animation: avatarPulse 1.5s infinite; }
+    
+    @keyframes avatarPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4), 0 4px 12px rgba(99,102,241,0.3); }
+      70% { box-shadow: 0 0 0 12px rgba(16,185,129,0), 0 4px 12px rgba(99,102,241,0.3); }
+      100% { box-shadow: 0 0 0 0 rgba(16,185,129,0), 0 4px 12px rgba(99,102,241,0.3); }
+    }
+    
+    .avatar-host {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      background: var(--warning);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      border: 2px solid var(--dark);
+    }
+    
+    .participant-info { flex: 1; min-width: 0; }
+    
+    .participant-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .participant-status {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+    
+    .status-dot.muted { background: var(--danger); }
+    
+    .chat-messages { display: flex; flex-direction: column; gap: 1rem; }
+    
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      animation: messageSlide 0.3s ease-out;
+    }
+    
+    @keyframes messageSlide {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .message-header { display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; }
+    .message-author { font-weight: 700; color: var(--primary); }
+    .message-time { color: var(--muted); font-size: 0.75rem; }
+    
+    .message-body {
+      background: rgba(255,255,255,0.05);
+      padding: 0.875rem 1.25rem;
+      border-radius: 16px;
+      border-top-right-radius: 4px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .message.self .message-body {
+      background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.05));
+      border-color: rgba(99,102,241,0.2);
+      border-top-right-radius: 16px;
+      border-top-left-radius: 4px;
+    }
+    
+    .chat-input-area {
+      padding: 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+      background: rgba(0,0,0,0.2);
+    }
+    
+    .chat-input {
+      flex: 1;
+      padding: 0.875rem 1.25rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    .chat-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+    }
+    
+    .media-controls { display: flex; align-items: center; gap: 1.25rem; }
+    
+    .mic-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.5rem 1.25rem;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+    }
+    
+    .mic-visualizer {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 28px;
+      width: 40px;
+    }
+    
+    .bar {
+      width: 4px;
+      background: linear-gradient(to top, var(--success), var(--primary));
+      border-radius: 2px;
+      transition: height 0.08s;
+    }
+    
+    .mic-status { font-size: 0.875rem; color: var(--muted); font-weight: 500; }
+    
+    .invite-section { display: flex; align-items: center; gap: 1rem; }
+    .invite-text { color: var(--muted); font-size: 0.875rem; }
+    
+    .slot-empty { opacity: 0.25; }
+    .slot-empty .avatar { background: rgba(255,255,255,0.05); box-shadow: none; }
+    
+    .toast {
+      position: fixed;
+      top: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(20px);
+      padding: 1rem 2rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      z-index: 1000;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      font-weight: 500;
+    }
+    
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    
+    .error-msg { color: var(--danger); font-size: 0.875rem; margin-top: 0.75rem; display: none; }
+    
+    .hint-text {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 1rem;
+      line-height: 1.6;
+    }
+    
+    .type-badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 0.75rem;
+      background: rgba(99,102,241,0.1);
+      color: var(--primary);
+      border: 1px solid rgba(99,102,241,0.2);
+    }
+    
+    .web-controls {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 20;
+      display: none;
+    }
+    
+    .web-control-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .web-control-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .block-notice {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--danger);
+      padding: 1rem;
+      border-radius: 12px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      display: none;
+    }
+    
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100px;
+      height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      outline: none;
+    }
+    
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .logo { font-size: 3rem; }
+      .features { flex-direction: column; gap: 0.5rem; text-align: center; }
+      .room-form { padding: 1.5rem; }
+      .url-input-group { flex-direction: column; }
+      .url-input-group .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation"></div>
+  <div class="particles" id="particles"></div>
+  
+  <div class="toast" id="toast">پەیام</div>
+
+  <div id="landing">
+    <div class="logo-container">
+      <div class="logo">🎬 فلیم</div>
+      <div class="tagline">سەیری فیلم و ڤیدیۆ لەگەڵ هاوڕێکان</div>
+    </div>
+    
+    <div class="features">
+      <div class="feature-item"><span>🎥</span> بینینی فیلم</div>
+      <div class="feature-item"><span>🎤</span> قسەکردن بە دەنگ</div>
+      <div class="feature-item"><span>💬</span> چاتی نوسین</div>
+      <div class="feature-item"><span>👥</span> تا ٥ کەس</div>
+    </div>
+    
+    <div class="room-form">
+      <div class="input-group">
+        <label>ناوی تۆ</label>
+        <input type="text" id="username" placeholder="ناوی خۆت بنووسە..." maxlength="20">
+      </div>
+      
+      <button class="btn btn-primary" onclick="createRoom()">
+        <span>✨</span> دروستکردنی ڕومێکی نوێ
+      </button>
+      
+      <div class="divider">یان</div>
+      
+      <div class="input-group">
+        <label>کۆدی ڕوم</label>
+        <input type="text" id="roomId" placeholder="کۆدی ڕوم بنووسە..." maxlength="10">
+      </div>
+      
+      <button class="btn btn-secondary" onclick="joinRoom()">
+        <span>🚪</span> بەشداربوون لە ڕوم
+      </button>
+    </div>
+    
+    <div style="margin-top: 2rem; text-align: center; color: var(--muted); font-size: 0.875rem;">
+      فایل، لینک، یان هەر وێبسایتێک بەکاربهێنە
+    </div>
+  </div>
+
+  <div id="room">
+    <div class="top-bar">
+      <div class="room-info">
+        <div style="font-weight: 800; font-size: 1.5rem; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🎬 فلیم</div>
+        <div class="room-badge" id="roomBadge">ڕوم: -</div>
+        <div style="color: var(--muted); font-size: 0.875rem; font-weight: 500;">
+          <span id="participantCount">١</span>/٥ بەشداربوو
+        </div>
+      </div>
+      <button class="btn btn-secondary" onclick="leaveRoom()" style="width: auto; padding: 0.75rem 1.5rem;">
+        🚪 چوونە دەرەوە
+      </button>
+    </div>
+    
+    <div class="main-content">
+      <div class="video-section">
+        <div class="video-container" id="videoContainer">
+          <video id="videoPlayer" playsinline preload="metadata" style="display: none;"></video>
+          <iframe id="iframeView" style="display: none;"></iframe>
+          <div id="webView" style="display: none;"></div>
+          
+          <div class="web-controls" id="webControls">
+            <button class="web-control-btn" onclick="reloadWeb()">🔄 نوێکردنەوە</button>
+            <button class="web-control-btn" onclick="openInNewTab()">↗️ کردنەوە لە تابی نوێ</button>
+            <button class="web-control-btn" onclick="closeWeb()">❌ داخستن</button>
+          </div>
+          
+          <div class="video-overlay" id="videoOverlay">
+            <div class="upload-zone" id="uploadZone">
+              <div class="upload-icon">🎬</div>
+              <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">فیلمێک هەڵبژێرە بۆ بینین</div>
+              <div style="color: var(--muted); margin-bottom: 1.5rem;">فایل، لینک، یان هەر وێبسایتێک بەکاربهێنە</div>
+              
+              <div class="source-tabs">
+                <button class="source-tab active" onclick="switchSourceTab(this, 'file')">📁 فایل</button>
+                <button class="source-tab" onclick="switchSourceTab(this, 'url')">🔗 لینک</button>
+                <button class="source-tab" onclick="switchSourceTab(this, 'web')">🌐 وێب</button>
+              </div>
+              
+              <div class="source-panel active" id="panel-file">
+                <div class="file-upload">
+                  <button class="btn btn-primary" style="width: auto; padding: 0.875rem 2rem;">
+                    📁 هەڵگرتنی فایل
+                  </button>
+                  <input type="file" id="videoFile" accept="video/*" onchange="loadVideoFile(this)">
+                </div>
+                <div style="color: var(--muted); margin-top: 1rem; font-size: 0.875rem;">یان فایلەکە ڕابکێشە و بیفڕێنە ئێرە</div>
+                <span class="type-badge">MP4, WebM, MOV</span>
+              </div>
+              
+              <div class="source-panel" id="panel-url">
+                <div class="url-input-group">
+                  <input type="text" id="videoUrl" placeholder="https://..." style="text-align: left; direction: ltr;">
+                  <button class="btn btn-primary" onclick="loadVideoUrl()">
+                    ▶️ پلەی
+                  </button>
+                </div>
+                <div class="error-msg" id="urlError"></div>
+                <div class="hint-text">
+                  ✅ لینکی ڕاستەوخۆی MP4 / WebM<br>
+                  ✅ لینکی سترێم (.m3u8)<br>
+                  ✅ یوتوب (youtube.com/watch?v=...)
+                </div>
+                <div class="platform-icons">
+                  <button class="platform-btn" onclick="setExampleUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ')" title="YouTube">📺</button>
+                  <button class="platform-btn" onclick="setExampleUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4')" title="MP4 Direct">🎞️</button>
+                </div>
+              </div>
+              
+              <div class="source-panel" id="panel-web">
+                <div class="url-input-group">
+                  <input type="text" id="webUrl" placeholder="https://kurdfilm.krd/..." style="text-align: left; direction: ltr;">
+                  <button class="btn btn-primary" onclick="loadWebsite()">
+                    🌐 کردنەوە
+                  </button>
+                </div>
+                <div class="error-msg" id="webError"></div>
+                <div class="block-notice" id="blockNotice">
+                  ⚠️ ئەم وێبسایتە ڕێگری iframe دەکات.<br>
+                  دوگمەی "کردنەوە لە تابی نوێ" بەکاربهێنە.
+                </div>
+                <div class="hint-text">
+                  🌐 هەر وێبسایتێک:<br>
+                  KurdFilm, Vimeo, Dailymotion<br>
+                  یان هەر سایتێکی تر<br><br>
+                  ⚠️ زۆرێک لە سایتەکان (Netflix, YouTube)<br>
+                  ڕێگری دەکەن لەبەر پاراستنی ئەمنی
+                </div>
+                <div class="platform-icons">
+                  <button class="platform-btn" onclick="setWebUrl('https://kurdfilm.krd')" title="KurdFilm">🎬</button>
+                  <button class="platform-btn" onclick="setWebUrl('https://vimeo.com')" title="Vimeo">📹</button>
+                  <button class="platform-btn" onclick="setWebUrl('https://dailymotion.com')" title="Dailymotion">📺</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="video-controls" id="videoControls" style="display: none;">
+            <div class="progress-container" id="progressBar" onclick="seek(event)">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="controls-row">
+              <div class="control-group">
+                <button class="icon-btn" id="playBtn" onclick="togglePlay()">▶️</button>
+                <span class="time-display" id="timeDisplay">٠٠:٠٠ / ٠٠:٠٠</span>
+              </div>
+              <div class="control-group">
+                <button class="icon-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
+                <input type="range" min="0" max="100" value="100" oninput="setVolume(this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sidebar">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab(this, 'participants')">👥 بەشداربووان</button>
+          <button class="tab" onclick="switchTab(this, 'chat')">💬 چات</button>
+        </div>
+        
+        <div class="tab-content" id="participantsTab">
+          <div id="participantsList"></div>
+        </div>
+        
+        <div class="tab-content" id="chatTab" style="display: none;">
+          <div class="chat-messages" id="chatMessages"></div>
+        </div>
+        
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chatInput" placeholder="نامە بنووسە..." onkeypress="if(event.key==='Enter')sendMessage()">
+          <button class="icon-btn" onclick="sendMessage()" style="width: 44px; height: 44px; flex-shrink: 0;">📤</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bottom-bar">
+      <div class="media-controls">
+        <button class="icon-btn" id="micBtn" onclick="toggleMic()" style="width: 52px; height: 52px; background: var(--danger); font-size: 1.5rem;">🎤</button>
+        <div class="mic-section">
+          <div class="mic-visualizer" id="micVisualizer">
+            <div class="bar" style="height: 4px;"></div>
+            <div class="bar" style="height: 8px;"></div>
+            <div class="bar" style="height: 6px;"></div>
+            <div class="bar" style="height: 12px;"></div>
+            <div class="bar" style="height: 5px;"></div>
+          </div>
+          <span class="mic-status" id="micStatus">میکرۆفۆن داخراوە</span>
+        </div>
+      </div>
+      
+      <div class="invite-section">
+        <span class="invite-text">هاوڕێکانت بانگهێشت بکە:</span>
+        <button class="btn btn-secondary" onclick="copyRoomLink()" style="width: auto; padding: 0.75rem 1.5rem; font-size: 0.875rem;">
+          📋 کۆپی کردنی لینک
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let currentUser = '';
+  let currentRoom = '';
+  let isHost = false;
+  let micStream = null;
+  let audioContext = null;
+  let analyser = null;
+  let isMicOn = false;
+  let videoElement = document.getElementById('videoPlayer');
+  let iframeView = document.getElementById('iframeView');
+  let webView = document.getElementById('webView');
+  let participants = [];
+  let channel = null;
+  let currentVideoType = 'none';
+  let youtubePlayer = null;
+  let currentWebUrl = '';
+  
+  function createParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDelay = Math.random() * 20 + 's';
+      p.style.animationDuration = (15 + Math.random() * 10) + 's';
+      p.style.width = (2 + Math.random() * 3) + 'px';
+      p.style.height = p.style.width;
+      container.appendChild(p);
+    }
+  }
+  createParticles();
+  
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+  
+  function createRoom() {
+    const username = document.getElementById('username').value.trim();
+    if (!username) { showToast('تکایە ناوێک بنووسە!'); return; }
+    currentUser = username;
+    currentRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
+    isHost = true;
+    enterRoom();
+  }
+  
+  function joinRoom() {
+    const username = document.getElementById('username').value.trim();
+    const roomId = document.getElementById('roomId').value.trim();
+    if (!username || !roomId) { showToast('تکایە ناو و کۆدی ڕوم بنووسە!'); return; }
+    currentUser = username;
+    currentRoom = roomId;
+    isHost = false;
+    enterRoom();
+  }
+  
+  function enterRoom() {
+    document.getElementById('landing').style.display = 'none';
+    document.getElementById('room').style.display = 'flex';
+    document.getElementById('roomBadge').textContent = 'ڕوم: ' + currentRoom;
+    addParticipant(currentUser, true, isHost);
+    setupChannel();
+    window.history.pushState({}, '', '?room=' + currentRoom);
+    showToast('بەخێربێی بۆ ڕومی ' + currentRoom + '!');
+  }
+  
+  function leaveRoom() {
+    if (channel) channel.close();
+    location.href = location.pathname;
+  }
+  
+  function switchSourceTab(btn, type) {
+    document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.source-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + type).classList.add('active');
+    document.getElementById('urlError').style.display = 'none';
+    document.getElementById('webError').style.display = 'none';
+    document.getElementById('blockNotice').style.display = 'none';
+  }
+  
+  function setExampleUrl(url) {
+    document.getElementById('videoUrl').value = url;
+    loadVideoUrl();
+  }
+  
+  function setWebUrl(url) {
+    document.getElementById('webUrl').value = url;
+    loadWebsite();
+  }
+  
+  function resetVideoPlayer() {
+    videoElement.pause();
+    videoElement.src = '';
+    videoElement.style.display = 'none';
+    iframeView.style.display = 'none';
+    iframeView.src = '';
+    webView.style.display = 'none';
+    webView.innerHTML = '';
+    document.getElementById('webControls').style.display = 'none';
+    youtubePlayer = null;
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('timeDisplay').textContent = '٠٠:٠٠ / ٠٠:٠٠';
+    currentVideoType = 'none';
+    currentWebUrl = '';
+  }
+  
+  // ===== FILE =====
+  function loadVideoFile(input) {
+    const file = input.files[0];
+    if (file) {
+      resetVideoPlayer();
+      const url = URL.createObjectURL(file);
+      videoElement.src = url;
+      videoElement.style.display = 'block';
+      currentVideoType = 'file';
+      document.getElementById('videoOverlay').style.display = 'none';
+      document.getElementById('videoControls').style.display = 'flex';
+      videoElement.play();
+      updatePlayButton();
+      showToast('فایل بارکرا: ' + file.name);
+      if (channel) channel.postMessage({ type: 'video', videoType: 'file', filename: file.name });
+    }
+  }
+  
+  // ===== URL =====
+  function loadVideoUrl() {
+    const url = document.getElementById('videoUrl').value.trim();
+    const errorDiv = document.getElementById('urlError');
+    if (!url) { errorDiv.textContent = 'تکایە لینکێک بنووسە'; errorDiv.style.display = 'block'; return; }
+    errorDiv.style.display = 'none';
+    
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) { loadYouTube(ytMatch[1]); return; }
+    
+    if (url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i)) {
+      loadDirectVideo(url);
+      return;
+    }
+    
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) { loadIframe('https://player.vimeo.com/video/' + vimeoMatch[1] + '?autoplay=1'); return; }
+    
+    const dmMatch = url.match(/dailymotion\.com\/video\/([a-zA-Z0-9]+)/);
+    if (dmMatch) { loadIframe('https://www.dailymotion.com/embed/video/' + dmMatch[1] + '?autoplay=1'); return; }
+    
+    loadDirectVideo(url);
+  }
+  
+  function loadDirectVideo(url) {
+    resetVideoPlayer();
+    videoElement.src = url;
+    videoElement.style.display = 'block';
+    currentVideoType = 'direct';
+    document.getElementById('videoOverlay').style.display = 'none';
+    document.getElementById('videoControls').style.display = 'flex';
+    
+    videoElement.onloadeddata = () => {
+      videoElement.play();
+      updatePlayButton();
+      showToast('ڤیدیۆ بارکرا');
+    };
+    
+    videoElement.onerror = () => {
+      showToast('نەتوانرا ڤیدیۆکە باربکرێت');
+      document.getElementById('videoOverlay').style.display = 'flex';
+      document.getElementById('videoControls').style.display = 'none';
+      videoElement.style.display = 'none';
+    };
+    
+    if (channel) channel.postMessage({ type: 'video', videoType: 'direct', url: url });
+  }
+  
+  function loadYouTube(videoId) {
+    resetVideoPlayer();
+    iframeView.style.display = 'block';
+    currentVideoType = 'youtube';
+    document.getElementById('videoControls').style.display = 'none';
+    document.getElementById('videoOverlay').style.display = 'none';
+    
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+      window.onYouTubeIframeAPIReady = () => createYouTubePlayer(videoId);
+    } else {
+      createYouTubePlayer(videoId);
+    }
+    showToast('یوتوب بارکرا');
+    if (channel) channel.postMessage({ type: 'video', videoType: 'youtube', videoId: videoId });
+  }
+  
+  function createYouTubePlayer(videoId) {
+    iframeView.innerHTML = '<div id="ytPlayer"></div>';
+    document.getElementById('ytPlayer').style.width = '100%';
+    document.getElementById('ytPlayer').style.height = '100%';
+    
+    youtubePlayer = new YT.Player('ytPlayer', {
+      videoId: videoId,
+      playerVars: { autoplay: 1, rel: 0, modestbranding: 1 },
+      events: {
+        onReady: (e) => e.target.playVideo(),
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.PLAYING && channel) {
+            channel.postMessage({ type: 'video', videoType: 'youtube', action: 'play', videoId: videoId, time: e.target.getCurrentTime() });
+          }
+        }
+      }
+    });
+  }
+  
+  // ===== WEBSITE / IFRAME =====
+  function loadWebsite() {
+    let url = document.getElementById('webUrl').value.trim();
+    const errorDiv = document.getElementById('webError');
+    const blockNotice = document.getElementById('blockNotice');
+    
+    if (!url) { errorDiv.textContent = 'تکایە لینکێک بنووسە'; errorDiv.style.display = 'block'; return; }
+    errorDiv.style.display = 'none';
+    blockNotice.style.display = 'none';
+    
+    if (!url.startsWith('http')) url = 'https://' + url;
+    currentWebUrl = url;
+    
+    resetVideoPlayer();
+    iframeView.src = url;
+    iframeView.style.display = 'block';
+    iframeView.sandbox = 'allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation';
+    currentVideoType = 'web';
+    document.getElementById('videoOverlay').style.display = 'none';
+    document.getElementById('videoControls').style.display = 'none';
+    document.getElementById('webControls').style.display = 'flex';
+    
+    showToast('وێبسایت کرایەوە');
+    if (channel) channel.postMessage({ type: 'video', videoType: 'web', url: url });
+    
+    // Check if blocked after 3 seconds
+    setTimeout(() => {
+      try {
+        const iframeDoc = iframeView.contentDocument || iframeView.contentWindow.document;
+        if (!iframeDoc || iframeDoc.body.innerHTML === '') {
+          blockNotice.style.display = 'block';
+        }
+      } catch (e) {
+        // Cross-origin, can't check. Assume it might be blocked.
+        blockNotice.style.display = 'block';
+      }
+    }, 3000);
+  }
+  
+  function reloadWeb() {
+    if (currentWebUrl) {
+      iframeView.src = currentWebUrl;
+      showToast('نوێکرایەوە');
+    }
+  }
+  
+  function openInNewTab() {
+    if (currentWebUrl) {
+      window.open(currentWebUrl, '_blank');
+      showToast('لە تابی نوێ کرایەوە');
+    }
+  }
+  
+  function closeWeb() {
+    resetVideoPlayer();
+    document.getElementById('videoOverlay').style.display = 'flex';
+    showToast('داخرا');
+  }
+  
+  function loadIframe(url) {
+    resetVideoPlayer();
+    iframeView.src = url;
+    iframeView.style.display = 'block';
+    currentVideoType = 'iframe';
+    document.getElementById('videoOverlay').style.display = 'none';
+    document.getElementById('videoControls').style.display = 'none';
+    showToast('کرایەوە');
+    if (channel) channel.postMessage({ type: 'video', videoType: 'iframe', url: url });
+  }
+  
+  // Drag & Drop
+  const container = document.getElementById('videoContainer');
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    document.getElementById('uploadZone').style.borderColor = 'var(--primary)';
+    document.getElementById('uploadZone').style.background = 'rgba(99,102,241,0.05)';
+  });
+  container.addEventListener('dragleave', () => {
+    document.getElementById('uploadZone').style.borderColor = 'rgba(255,255,255,0.2)';
+    document.getElementById('uploadZone').style.background = 'rgba(255,255,255,0.02)';
+  });
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    document.getElementById('uploadZone').style.borderColor = 'rgba(255,255,255,0.2)';
+    document.getElementById('uploadZone').style.background = 'rgba(255,255,255,0.02)';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('video/')) {
+      const url = URL.createObjectURL(file);
+      resetVideoPlayer();
+      videoElement.src = url;
+      videoElement.style.display = 'block';
+      currentVideoType = 'file';
+      document.getElementById('videoOverlay').style.display = 'none';
+      document.getElementById('videoControls').style.display = 'flex';
+      videoElement.play();
+      updatePlayButton();
+      showToast('فایل بارکرا: ' + file.name);
+    }
+  });
+  
+  // Video Controls
+  function togglePlay() {
+    if (currentVideoType === 'youtube' && youtubePlayer) {
+      const state = youtubePlayer.getPlayerState();
+      if (state === YT.PlayerState.PLAYING) youtubePlayer.pauseVideo();
+      else youtubePlayer.playVideo();
+    } else {
+      if (videoElement.paused) videoElement.play();
+      else videoElement.pause();
+    }
+    updatePlayButton();
+  }
+  
+  function updatePlayButton() {
+    if (currentVideoType === 'youtube' && youtubePlayer) {
+      const state = youtubePlayer.getPlayerState();
+      document.getElementById('playBtn').textContent = state === YT.PlayerState.PLAYING ? '⏸️' : '▶️';
+    } else {
+      document.getElementById('playBtn').textContent = videoElement.paused ? '▶️' : '⏸️';
+    }
+  }
+  
+  videoElement.addEventListener('timeupdate', () => {
+    if (!isNaN(videoElement.duration)) {
+      const percent = (videoElement.currentTime / videoElement.duration) * 100;
+      document.getElementById('progressFill').style.width = percent + '%';
+      document.getElementById('timeDisplay').textContent = 
+        formatTime(videoElement.currentTime) + ' / ' + formatTime(videoElement.duration);
+    }
+  });
+  
+  videoElement.addEventListener('ended', () => updatePlayButton());
+  
+  function seek(e) {
+    if (currentVideoType !== 'file' && currentVideoType !== 'direct') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    if (!isNaN(videoElement.duration)) videoElement.currentTime = percent * videoElement.duration;
+  }
+  
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return '٠٠:٠٠';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+  }
+  
+  function toggleMute() {
+    if (currentVideoType === 'youtube' && youtubePlayer) {
+      youtubePlayer.isMuted() ? youtubePlayer.unMute() : youtubePlayer.mute();
+      document.getElementById('muteBtn').textContent = youtubePlayer.isMuted() ? '🔇' : '🔊';
+    } else {
+      videoElement.muted = !videoElement.muted;
+      document.getElementById('muteBtn').textContent = videoElement.muted ? '🔇' : '🔊';
+    }
+  }
+  
+  function setVolume(val) {
+    if (currentVideoType === 'youtube' && youtubePlayer) {
+      youtubePlayer.setVolume(val);
+    } else {
+      videoElement.volume = val / 100;
+    }
+    if (val == 0) document.getElementById('muteBtn').textContent = '🔇';
+    else document.getElementById('muteBtn').textContent = '🔊';
+  }
+  
+  // Participants
+  function addParticipant(name, isSelf, isHostFlag = false) {
+    if (participants.length >= 5 && !isSelf) { showToast('ئەم ڕومە پڕە!'); return false; }
+    if (!participants.find(p => p.name === name)) {
+      participants.push({ name, isSelf, isHost: isHostFlag, speaking: false, muted: true });
+      renderParticipants();
+      return true;
+    }
+    return false;
+  }
+  
+  function removeParticipant(name) {
+    participants = participants.filter(p => p.name !== name);
+    renderParticipants();
+  }
+  
+  function renderParticipants() {
+    const list = document.getElementById('participantsList');
+    list.innerHTML = '';
+    
+    participants.forEach((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'participant ' + (p.speaking ? 'speaking' : '');
+      const initials = p.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+      div.innerHTML = `
+        <div class="avatar ${p.speaking ? 'speaking' : ''}">
+          ${initials}
+          ${p.isHost ? '<div class="avatar-host">👑</div>' : ''}
+        </div>
+        <div class="participant-info">
+          <div class="participant-name">${p.name} ${p.isSelf ? '(تۆ)' : ''}</div>
+          <div class="participant-status">
+            <span class="status-dot ${p.muted ? 'muted' : ''}"></span>
+            ${p.muted ? 'میکرۆفۆن داخراوە' : (p.speaking ? 'قسە دەکات...' : 'بەردەستە')}
+          </div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+    
+    for (let i = participants.length; i < 5; i++) {
+      const div = document.createElement('div');
+      div.className = 'participant slot-empty';
+      div.innerHTML = `
+        <div class="avatar">؟</div>
+        <div class="participant-info">
+          <div class="participant-name" style="color: var(--muted);">بەشداربوونی ${i + 1}</div>
+          <div class="participant-status">بەردەست نییە</div>
+        </div>
+      `;
+      list.appendChild(div);
+    }
+    
+    document.getElementById('participantCount').textContent = participants.length;
+  }
+  
+  // Microphone
+  async function toggleMic() {
+    if (!isMicOn) {
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaStreamSource(micStream);
+        source.connect(analyser);
+        analyser.fftSize = 64;
+        isMicOn = true;
+        
+        document.getElementById('micBtn').style.background = 'var(--success)';
+        document.getElementById('micBtn').style.boxShadow = '0 0 20px rgba(16,185,129,0.4)';
+        document.getElementById('micStatus').textContent = 'میکرۆفۆن کراوەیە';
+        
+        const self = participants.find(p => p.isSelf);
+        if (self) { self.muted = false; renderParticipants(); }
+        
+        visualizeAudio();
+        showToast('میکرۆفۆن کرایەوە');
+        if (channel) channel.postMessage({ type: 'mic', user: currentUser, on: true });
+      } catch (err) {
+        showToast('نەتوانرا میکرۆفۆن بکرێتەوە');
+      }
+    } else {
+      micStream.getTracks().forEach(t => t.stop());
+      isMicOn = false;
+      document.getElementById('micBtn').style.background = 'var(--danger)';
+      document.getElementById('micBtn').style.boxShadow = '';
+      document.getElementById('micStatus').textContent = 'میکرۆفۆن داخراوە';
+      const self = participants.find(p => p.isSelf);
+      if (self) { self.muted = true; self.speaking = false; renderParticipants(); }
+      showToast('میکرۆفۆن داخرا');
+      if (channel) channel.postMessage({ type: 'mic', user: currentUser, on: false });
+    }
+  }
+  
+  function visualizeAudio() {
+    if (!isMicOn) {
+      document.querySelectorAll('.bar').forEach(b => b.style.height = '4px');
+      return;
+    }
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(dataArray);
+    const bars = document.querySelectorAll('.bar');
+    bars.forEach((bar, i) => {
+      const idx = Math.floor(i * (dataArray.length / bars.length));
+      const value = dataArray[idx] || 0;
+      bar.style.height = Math.max(4, (value / 255) * 28) + 'px';
+    });
+    const avg = dataArray.reduce((a,b) => a+b, 0) / dataArray.length;
+    const self = participants.find(p => p.isSelf);
+    if (self && avg > 30) {
+      if (!self.speaking) { self.speaking = true; renderParticipants(); }
+    } else if (self && avg <= 30 && self.speaking) {
+      self.speaking = false; renderParticipants();
+    }
+    requestAnimationFrame(visualizeAudio);
+  }
+  
+  // Tabs
+  function switchTab(btn, tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('participantsTab').style.display = tab === 'participants' ? 'block' : 'none';
+    document.getElementById('chatTab').style.display = tab === 'chat' ? 'block' : 'none';
+  }
+  
+  // Chat
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    addMessage(currentUser, text, true);
+    input.value = '';
+    if (channel) channel.postMessage({ type: 'chat', user: currentUser, text, time: new Date().toISOString() });
+  }
+  
+  function addMessage(user, text, isSelf) {
+    const container = document.getElementById('chatMessages');
+    const msg = document.createElement('div');
+    msg.className = 'message ' + (isSelf ? 'self' : '');
+    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    msg.innerHTML = `
+      <div class="message-header">
+        <span class="message-author">${user}</span>
+        <span class="message-time">${time}</span>
+      </div>
+      <div class="message-body">${escapeHtml(text)}</div>
+    `;
+    container.appendChild(msg);
+    container.scrollTop = container.scrollHeight;
+  }
+  
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  // BroadcastChannel
+  function setupChannel() {
+    if (typeof BroadcastChannel !== 'undefined') {
+      channel = new BroadcastChannel('film_room_' + currentRoom);
+      channel.onmessage = (e) => {
+        const data = e.data;
+        if (data.user === currentUser) return;
+        
+        if (data.type === 'chat') {
+          addMessage(data.user, data.text, false);
+        } else if (data.type === 'join') {
+          if (addParticipant(data.user, false)) showToast(data.user + ' بەشداری کرد!');
+        } else if (data.type === 'mic') {
+          const p = participants.find(x => x.name === data.user);
+          if (p) { p.muted = !data.on; p.speaking = data.on; renderParticipants(); }
+        } else if (data.type === 'leave') {
+          removeParticipant(data.user);
+          showToast(data.user + ' ڕومەکەی جێهێشت!');
+        } else if (data.type === 'video') {
+          handleRemoteVideo(data);
+        }
+      };
+      channel.postMessage({ type: 'join', user: currentUser });
+    }
+  }
+  
+  function handleRemoteVideo(data) {
+    if (data.videoType === 'youtube' && data.videoId) {
+      document.getElementById('videoUrl').value = 'https://youtube.com/watch?v=' + data.videoId;
+      loadYouTube(data.videoId);
+    } else if (data.videoType === 'direct' && data.url) {
+      document.getElementById('videoUrl').value = data.url;
+      loadDirectVideo(data.url);
+    } else if (data.videoType === 'web' && data.url) {
+      document.getElementById('webUrl').value = data.url;
+      loadWebsite();
+    } else if (data.videoType === 'iframe' && data.url) {
+      loadIframe(data.url);
+    }
+  }
+  
+  function copyRoomLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      showToast('لینک کۆپی کرا! ببەستە بۆ هاوڕێکانت');
+    });
+  }
+  
+  window.addEventListener('beforeunload', () => {
+    if (channel) channel.postMessage({ type: 'leave', user: currentUser });
+  });
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault();
+      if (currentVideoType === 'file' || currentVideoType === 'direct') togglePlay();
+    }
+  });
+  
+  // Check URL on load
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = params.get('room');
+  if (roomParam) document.getElementById('roomId').value = roomParam;
+</script>
+</body>
+</html>
