@@ -836,17 +836,6 @@
       border-color: var(--primary);
     }
 
-    .block-notice {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: var(--danger);
-      padding: 1rem;
-      border-radius: 12px;
-      margin-top: 1rem;
-      font-size: 0.85rem;
-      display: none;
-    }
-
     .connection-status {
       position: fixed;
       top: 1rem;
@@ -962,7 +951,22 @@
 
     .mobile-sidebar-toggle:hover { background: rgba(255,255,255,0.2); }
 
-    /* Screen share waiting state for guests */
+    /* Guest waiting overlay */
+    .guest-waiting {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 2rem;
+      text-align: center;
+      max-width: 400px;
+    }
+    .guest-waiting.active { display: flex; }
+    .guest-waiting-icon { font-size: 4rem; }
+    .guest-waiting-title { font-size: 1.25rem; font-weight: 600; }
+    .guest-waiting-text { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+    /* Screen waiting state for guests */
     .screen-waiting {
       display: none;
       flex-direction: column;
@@ -1193,9 +1197,19 @@
       <div class="video-section">
         <div class="video-container" id="videoContainer">
           <video id="videoPlayer" playsinline preload="metadata" style="display: none;"></video>
-          <iframe id="iframeView" style="display: none;" allow="autoplay; fullscreen"></iframe>
+          <iframe id="iframeView" style="display: none;" allow="autoplay; fullscreen" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"></iframe>
           <div id="webView" style="display: none;"></div>
           <video id="screenVideo" playsinline autoplay muted style="display: none;"></video>
+
+          <!-- Guest waiting overlay (replaces upload zone for guests) -->
+          <div class="guest-waiting" id="guestWaiting">
+            <div class="guest-waiting-icon">🎬</div>
+            <div class="guest-waiting-title">چاوەڕێی ئەدمین...</div>
+            <div class="guest-waiting-text">
+              تەنها ئەدمین دەتوانێت فیلم، لینک، یان وێبسایت هەڵبژێرێت.<br>
+              چاوەڕێ بکە ئەدمین شتێک دەستپێبکات...
+            </div>
+          </div>
 
           <!-- Screen waiting state for guests -->
           <div class="screen-waiting" id="screenWaiting">
@@ -1222,6 +1236,7 @@
             </button>
           </div>
 
+          <!-- ADMIN ONLY: Upload overlay -->
           <div class="video-overlay" id="videoOverlay">
             <div class="upload-zone" id="uploadZone">
               <div class="upload-icon">🎬</div>
@@ -1267,22 +1282,18 @@
 
               <div class="source-panel" id="panel-web">
                 <div class="url-input-group">
-                  <input type="text" id="webUrl" placeholder="https://kurdfilm.krd/..." style="text-align: left; direction: ltr;">
+                  <input type="text" id="webUrl" placeholder="https://example.com/..." style="text-align: left; direction: ltr;">
                   <button class="btn btn-primary" onclick="loadWebsite()">
                     🌐 کردنەوە
                   </button>
                 </div>
                 <div class="error-msg" id="webError"></div>
-                <div class="block-notice" id="blockNotice">
-                  ⚠️ ئەم وێبسایتە ڕێگری iframe دەکات.<br>
-                  دوگمەی "کردنەوە لە تابی نوێ" بەکاربهێنە.
-                </div>
                 <div class="hint-text">
-                  🌐 هەر وێبسایتێک:<br>
-                  KurdFilm, Vimeo, Dailymotion<br>
+                  🌐 هەر وێبسایتێک دەتوانیت لێرە بکەیتەوە:<br>
+                  KurdFilm, Vimeo, Dailymotion, Netflix<br>
                   یان هەر سایتێکی تر<br><br>
-                  ⚠️ زۆرێک لە سایتەکان (Netflix, YouTube)<br>
-                  ڕێگری دەکەن لەبەر پاراستنی ئەمنی
+                  ⚠️ هەندێک سایت ڕێگری iframe دەکەن،<br>
+                  لەو کاتەدا دوگمەی "کردنەوە لە تابی نوێ" بەکاربهێنە
                 </div>
                 <div class="platform-icons">
                   <button class="platform-btn" onclick="setWebUrl('https://kurdfilm.krd')" title="KurdFilm">🎬</button>
@@ -1448,6 +1459,8 @@
   const roomConnStatus = document.getElementById('roomConnStatus');
   const videoContainer = document.getElementById('videoContainer');
   const screenWaiting = document.getElementById('screenWaiting');
+  const guestWaiting = document.getElementById('guestWaiting');
+  const videoOverlay = document.getElementById('videoOverlay');
 
   // ==================== Utility ====================
   function showToast(msg) {
@@ -1490,12 +1503,12 @@
 
   // Swipe to close sidebar on mobile
   let touchStartX = 0;
-  const sidebar = document.getElementById('sidebar');
-  sidebar.addEventListener('touchstart', (e) => {
+  const sidebarEl = document.getElementById('sidebar');
+  sidebarEl.addEventListener('touchstart', (e) => {
     touchStartX = e.touches[0].clientX;
   }, { passive: true });
-  sidebar.addEventListener('touchmove', (e) => {
-    if (!sidebar.classList.contains('open')) return;
+  sidebarEl.addEventListener('touchmove', (e) => {
+    if (!sidebarEl.classList.contains('open')) return;
     const diff = e.touches[0].clientX - touchStartX;
     if (diff > 50) { // swiped right
       toggleMobileSidebar();
@@ -1693,7 +1706,7 @@
                 call.on('close', () => { delete screenCalls[data.peerId]; });
                 call.on('error', (err) => { console.log('[Screen Call Error]', err); delete screenCalls[data.peerId]; });
               }
-            }, 1000); // Small delay to ensure peer is ready
+            }, 1000);
           }
 
           // Send peer list for mesh
@@ -1729,10 +1742,8 @@
           if (data.screenSharing) {
             showToast('ئەدمین سکرین شێر دەکات. چاوەڕێی وەرگرتنی سترێم بکە...');
             document.getElementById('screenIndicator').style.display = 'inline-block';
-            // Show waiting state
             screenWaiting.classList.add('active');
-            document.getElementById('videoOverlay').style.display = 'none';
-            // Set timeout to check if stream received
+            videoOverlay.style.display = 'none';
             screenCheckTimeout = setTimeout(() => {
               if (!screenStreamReceived) {
                 showToast('کێشە لە وەرگرتنی سکرین. دوگمەی دووبارە هەوڵدان بەکاربهێنە.');
@@ -1793,7 +1804,7 @@
           showToast('ئەدمین سکرین شێر دەکات...');
           document.getElementById('screenIndicator').style.display = 'inline-block';
           screenWaiting.classList.add('active');
-          document.getElementById('videoOverlay').style.display = 'none';
+          videoOverlay.style.display = 'none';
           screenStreamReceived = false;
           screenCheckTimeout = setTimeout(() => {
             if (!screenStreamReceived) {
@@ -1866,7 +1877,6 @@
     if (isScreenSharing) return;
 
     try {
-      // Request display media WITH audio (system audio + mic mixed if possible)
       const constraints = {
         video: {
           cursor: "always",
@@ -1897,13 +1907,14 @@
       webView.innerHTML = '';
       document.getElementById('webControls').style.display = 'none';
       document.getElementById('videoControls').style.display = 'none';
-      document.getElementById('videoOverlay').style.display = 'none';
+      videoOverlay.style.display = 'none';
+      guestWaiting.classList.remove('active');
       screenWaiting.classList.remove('active');
 
       // Show screen video for admin (local preview)
       screenVideo.srcObject = screenStream;
       screenVideo.style.display = 'block';
-      screenVideo.muted = true; // Mute local preview to avoid echo
+      screenVideo.muted = true;
       screenVideo.play().catch(e => console.log('Local preview play error:', e));
 
       // Update UI
@@ -1942,7 +1953,6 @@
 
   function stopScreenShare() {
     if (!isHost) {
-      // Guest stopping viewing
       stopViewingScreen();
       return;
     }
@@ -1966,7 +1976,7 @@
     screenVideo.pause();
     screenVideo.srcObject = null;
     screenVideo.style.display = 'none';
-    document.getElementById('videoOverlay').style.display = 'flex';
+    videoOverlay.style.display = 'flex';
     document.getElementById('startScreenBtn').style.display = 'inline-block';
     document.getElementById('stopScreenBtn').style.display = 'none';
     document.getElementById('stopScreenOverlayBtn').style.display = 'none';
@@ -1988,7 +1998,8 @@
       videoElement.style.display = 'none';
       iframeView.style.display = 'none';
       webView.style.display = 'none';
-      document.getElementById('videoOverlay').style.display = 'none';
+      videoOverlay.style.display = 'none';
+      guestWaiting.classList.remove('active');
       document.getElementById('videoControls').style.display = 'none';
       document.getElementById('webControls').style.display = 'none';
       document.getElementById('screenIndicator').style.display = 'inline-block';
@@ -1997,11 +2008,10 @@
       // Show screen video
       screenVideo.srcObject = remoteStream;
       screenVideo.style.display = 'block';
-      screenVideo.muted = false; // UNMUTE to hear screen audio
+      screenVideo.muted = false;
       screenVideo.volume = 1.0;
       screenVideo.play().catch(e => {
         console.log('Screen play error:', e);
-        // On mobile, user gesture might be needed
         showToast('بۆ بینینی سکرین، کلیک لەسەر ڤیدیۆکە بکە');
       });
 
@@ -2040,9 +2050,8 @@
     screenWaiting.classList.remove('active');
 
     if (!isHost) {
-      // Only show overlay if no other video is playing
       if (currentVideoType === 'none') {
-        document.getElementById('videoOverlay').style.display = 'flex';
+        guestWaiting.classList.add('active');
       }
     }
     showToast('سکرین شێر کۆتایی هات');
@@ -2070,7 +2079,13 @@
       if (isMobileDevice) {
         document.getElementById('mobileScreenHint').style.display = 'block';
       }
+      // Admin sees the upload overlay
+      videoOverlay.style.display = 'flex';
+      guestWaiting.classList.remove('active');
     } else {
+      // Guest: hide upload overlay, show waiting state
+      videoOverlay.style.display = 'none';
+      guestWaiting.classList.add('active');
       document.getElementById('screenTabBtn').style.display = 'inline-block';
       document.getElementById('startScreenBtn').style.display = 'none';
       document.getElementById('stopScreenBtn').style.display = 'none';
@@ -2396,6 +2411,7 @@
 
   // File
   function loadVideoFile(input) {
+    if (!isHost) { showToast('تەنها ئەدمین دەتوانێت فایل هەڵبژێرێت!'); return; }
     if (isScreenSharing) stopScreenShare();
     const file = input.files[0];
     if (file) {
@@ -2404,7 +2420,8 @@
       videoElement.src = url;
       videoElement.style.display = 'block';
       currentVideoType = 'file';
-      document.getElementById('videoOverlay').style.display = 'none';
+      videoOverlay.style.display = 'none';
+      guestWaiting.classList.remove('active');
       document.getElementById('videoControls').style.display = 'flex';
       videoElement.play();
       updatePlayButton();
@@ -2415,6 +2432,7 @@
 
   // URL
   function loadVideoUrl() {
+    if (!isHost) { showToast('تەنها ئەدمین دەتوانێت لینک دابنێت!'); return; }
     if (isScreenSharing) stopScreenShare();
     const url = document.getElementById('videoUrl').value.trim();
     const errorDiv = document.getElementById('urlError');
@@ -2444,7 +2462,8 @@
     videoElement.src = url;
     videoElement.style.display = 'block';
     currentVideoType = 'direct';
-    document.getElementById('videoOverlay').style.display = 'none';
+    videoOverlay.style.display = 'none';
+    guestWaiting.classList.remove('active');
     document.getElementById('videoControls').style.display = 'flex';
 
     videoElement.onloadeddata = () => {
@@ -2455,7 +2474,11 @@
 
     videoElement.onerror = () => {
       showToast('نەتوانرا ڤیدیۆکە باربکرێت');
-      document.getElementById('videoOverlay').style.display = 'flex';
+      if (isHost) {
+        videoOverlay.style.display = 'flex';
+      } else {
+        guestWaiting.classList.add('active');
+      }
       document.getElementById('videoControls').style.display = 'none';
       videoElement.style.display = 'none';
     };
@@ -2469,7 +2492,8 @@
     iframeView.style.display = 'block';
     currentVideoType = 'youtube';
     document.getElementById('videoControls').style.display = 'none';
-    document.getElementById('videoOverlay').style.display = 'none';
+    videoOverlay.style.display = 'none';
+    guestWaiting.classList.remove('active');
 
     if (!window.YT) {
       const tag = document.createElement('script');
@@ -2505,16 +2529,15 @@
     });
   }
 
-  // Website
+  // Website - open ANY website in iframe
   function loadWebsite(skipEmit = false) {
+    if (!isHost) { showToast('تەنها ئەدمین دەتوانێت وێبسایت بکاتەوە!'); return; }
     if (isScreenSharing) stopScreenShare();
     let url = document.getElementById('webUrl').value.trim();
     const errorDiv = document.getElementById('webError');
-    const blockNotice = document.getElementById('blockNotice');
 
     if (!url) { errorDiv.textContent = 'تکایە لینکێک بنووسە'; errorDiv.style.display = 'block'; return; }
     errorDiv.style.display = 'none';
-    blockNotice.style.display = 'none';
 
     if (!url.startsWith('http')) url = 'https://' + url;
     currentWebUrl = url;
@@ -2523,19 +2546,13 @@
     iframeView.src = url;
     iframeView.style.display = 'block';
     currentVideoType = 'web';
-    document.getElementById('videoOverlay').style.display = 'none';
+    videoOverlay.style.display = 'none';
+    guestWaiting.classList.remove('active');
     document.getElementById('videoControls').style.display = 'none';
     document.getElementById('webControls').style.display = 'flex';
 
     showToast('وێبسایت کرایەوە');
     if (!skipEmit) emitVideoAction('load', { videoType: 'web', url: url });
-
-    setTimeout(() => {
-      try {
-        const iframeDoc = iframeView.contentDocument || iframeView.contentWindow.document;
-        if (!iframeDoc || iframeDoc.body.innerHTML === '') blockNotice.style.display = 'block';
-      } catch (e) { blockNotice.style.display = 'block'; }
-    }, 3000);
   }
 
   function reloadWeb() {
@@ -2547,8 +2564,9 @@
   }
 
   function closeWeb() {
+    if (!isHost) { showToast('تەنها ئەدمین دەتوانێت دابخات!'); return; }
     resetVideoPlayer();
-    document.getElementById('videoOverlay').style.display = 'flex';
+    videoOverlay.style.display = 'flex';
     showToast('داخرا');
   }
 
@@ -2558,7 +2576,8 @@
     iframeView.src = url;
     iframeView.style.display = 'block';
     currentVideoType = 'iframe';
-    document.getElementById('videoOverlay').style.display = 'none';
+    videoOverlay.style.display = 'none';
+    guestWaiting.classList.remove('active');
     document.getElementById('videoControls').style.display = 'none';
     showToast('کرایەوە');
     if (!skipEmit) emitVideoAction('load', { videoType: 'iframe', url: url });
@@ -2708,7 +2727,6 @@
     document.getElementById('panel-' + type).classList.add('active');
     document.getElementById('urlError').style.display = 'none';
     document.getElementById('webError').style.display = 'none';
-    document.getElementById('blockNotice').style.display = 'none';
   }
 
   function setExampleUrl(url) {
@@ -2724,15 +2742,18 @@
   // ==================== Drag & Drop ====================
   const dropContainer = document.getElementById('videoContainer');
   dropContainer.addEventListener('dragover', (e) => {
+    if (!isHost) return;
     e.preventDefault();
     document.getElementById('uploadZone').style.borderColor = 'var(--primary)';
     document.getElementById('uploadZone').style.background = 'rgba(99,102,241,0.05)';
   });
   dropContainer.addEventListener('dragleave', () => {
+    if (!isHost) return;
     document.getElementById('uploadZone').style.borderColor = 'rgba(255,255,255,0.2)';
     document.getElementById('uploadZone').style.background = 'rgba(255,255,255,0.02)';
   });
   dropContainer.addEventListener('drop', (e) => {
+    if (!isHost) { showToast('تەنها ئەدمین دەتوانێت فایل دابنێت!'); return; }
     e.preventDefault();
     document.getElementById('uploadZone').style.borderColor = 'rgba(255,255,255,0.2)';
     document.getElementById('uploadZone').style.background = 'rgba(255,255,255,0.02)';
@@ -2744,7 +2765,8 @@
       videoElement.src = url;
       videoElement.style.display = 'block';
       currentVideoType = 'file';
-      document.getElementById('videoOverlay').style.display = 'none';
+      videoOverlay.style.display = 'none';
+      guestWaiting.classList.remove('active');
       document.getElementById('videoControls').style.display = 'flex';
       videoElement.play();
       updatePlayButton();
